@@ -1,0 +1,2 @@
+# GivazyChat
+The GivazyChat App
