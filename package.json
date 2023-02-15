@@ -1,0 +1,26 @@
+{
+  "name": "givazychat",
+  "version": "1.0.0",
+  "description": "The GivazyChat App",
+  "main": "index.js",
+  "scripts": {
+    "test": "test",
+    "dev": "next dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ion22666/GivazyChat.git"
+  },
+  "keywords": [
+    "givazy"
+  ],
+  "author": "Giovanni, Valy and Zyppon",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ion22666/GivazyChat/issues"
+  },
+  "homepage": "https://github.com/ion22666/GivazyChat#readme",
+  "devDependencies": {
+    "next": "^13.1.6"
+  }
+}
