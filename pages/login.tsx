@@ -1,6 +1,18 @@
 import * as React from "react";
 
+import { useRouter } from 'next/router'
+
+
 function LoginPage() {
+
+   
+    const router = useRouter();
+
+    const handleButtonClick = () => {
+        router.push('/register')
+        
+        }
+
     return (
 
         <div className=" grid place-items-center mt-20">             
@@ -20,7 +32,9 @@ function LoginPage() {
                         <button className="border bg-red-300 rounded-md ">Google</button>
                         <button className="border bg-red-300  rounded-md ">Facebook</button>
                     </div>
-                    <a className= ' text-white grid  text-center mb-2.5'  href="register">Register</a>
+
+
+                    <button onClick={handleButtonClick}  className= ' text-white block  mb-2.5 mx-auto my-auto  '>Register</button>
                     
                 </form>
             </div>

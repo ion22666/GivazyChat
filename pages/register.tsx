@@ -1,7 +1,19 @@
 import * as React from "react";
 
+import { useRouter } from 'next/router'
+
+
+
 
 function RegisterPage(){
+
+    const router = useRouter();
+
+    const handleButtonClick = () => {
+        router.push('/login')
+        
+        }  
+
     return(
         <div className=" grid place-items-center mt-10">             
 
@@ -23,12 +35,12 @@ function RegisterPage(){
                     <input className="w-full rounded" type="password" required  /> <br />
 
 
-                    <button className="bg-white mx-auto my-4 border px-3.5 w-full rounded font-semibold text-Black-Blue my-5" type="submit" >Register</button>
+                    <button className="bg-white mx-auto border px-3.5 w-full rounded font-semibold text-Black-Blue my-5" type="submit" >Register</button>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <button className="border bg-red-300 rounded-md ">Google</button>
                         <button className="border bg-red-300  rounded-md ">Facebook</button>
                     </div>
-                    <a className= ' text-white grid  text-center mb-2.5'  href="login">Login</a>
+                    <button onClick={handleButtonClick}  className= ' text-white block  mb-2.5 mx-auto my-auto  '>Register</button>
                     
                 </form>
             </div>
