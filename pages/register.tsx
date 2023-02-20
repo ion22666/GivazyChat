@@ -48,32 +48,32 @@ function RegisterPage() {
                     encType="application/x-www-form-urlencoded"
                 >
                     <h1 className="text-center mt-5 text-xl  font-semibold text-white   ">
-                        Register
-                    </h1>{" "}
+                        {"Register"}
+                    </h1>
                     <br />
                     <label className="text-white" htmlFor="Email ">
-                        Email
-                    </label>{" "}
+                        {"Email"}
+                    </label>
                     <br />
                     <input
                         className="w-full rounded"
                         type="email"
                         required
-                    />{" "}
+                    />
                     <br />
                     <label className="text-white" htmlFor=" username ">
-                        Username
-                    </label>{" "}
+                        {"Username"}
+                    </label>
                     <br />
                     <input
                         className="w-full rounded"
                         type="text"
                         required
-                    />{" "}
+                    />
                     <br />
                     <label className="text-white" htmlFor="Password">
-                        Password
-                    </label>{" "}
+                        {"Password"}
+                    </label>
                     <br />
                     <input
                         className="w-full rounded"
@@ -81,12 +81,12 @@ function RegisterPage() {
                         required
                         ref={passwordRef}
                         onChange={handleInputChange}
-                    />{" "}
+                    />
                     <br />
                     <label className="text-white" htmlFor="password">
-                        {" "}
-                        Confirm Password
-                    </label>{" "}
+                        
+                        {"Confirm Password"}
+                    </label>
                     <br />
                     <input
                         className="w-full rounded"
@@ -94,7 +94,7 @@ function RegisterPage() {
                         required
                         ref={confirmPasswordRef}
                         onChange={handleInputChange}
-                    />{" "}
+                    />
                     <br />
                     {passwordLengthError && <p className="text-red-600">Parola trebuie sa fie de minim 8 caractere</p>}
                     {passwordError && <p className="text-red-600">Parolele nu coincid!</p>}
@@ -104,21 +104,21 @@ function RegisterPage() {
                         className="bg-white mx-auto border px-3.5 w-full rounded font-semibold text-Black-Blue my-5"
                         type="submit"
                     >
-                        Register
+                        {"Register"}
                     </button>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <button className="border bg-red-300 rounded-md ">
-                            Google
+                            {"Google"}
                         </button>
                         <button className="border bg-red-300  rounded-md ">
-                            Facebook
+                            {"Facebook"}
                         </button>
                     </div>
                     <button
                         onClick={handleButtonClick}
                         className=" text-white block  mb-2.5 mx-auto my-auto  "
                     >
-                        Login
+                        {"Login"}
                     </button>
                 </form>
             </div>
