@@ -75,6 +75,7 @@ function LoginPage() {
                         </button>
                     </div>
                     <button
+                        type="submit"
                         onClick={handleButtonClick}
                         className=" text-white block  mb-2.5 mx-auto my-auto  "
                     >
