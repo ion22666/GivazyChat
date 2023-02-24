@@ -4,7 +4,7 @@
     "description": "The GivazyChat App",
     "main": "index.js",
     "scripts": {
-        "test": "test",
+        "test": "npx jest --config ./__tests__/.config/jest.config.js",
         "dev": "next dev"
     },
     "repository": {
@@ -21,9 +21,14 @@
     },
     "homepage": "https://github.com/ion22666/GivazyChat#readme",
     "devDependencies": {
+        "@testing-library/jest-dom": "^5.16.5",
+        "@testing-library/react": "^14.0.0",
         "@types/node": "18.13.0",
         "@types/react": "18.0.28",
         "autoprefixer": "^10.4.13",
+        "cypress": "^12.6.0",
+        "jest": "^29.4.3",
+        "jest-environment-jsdom": "^29.4.3",
         "next": "^13.1.6",
         "postcss": "^8.4.21",
         "tailwindcss": "^3.2.6",
