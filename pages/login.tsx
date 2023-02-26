@@ -18,6 +18,7 @@ function LoginPage() {
         }
         if (!password) {
             setFormError("Password not provided");
+            return;
         }
         const formData = new FormData();
         formData.append("email", event.currentTarget.email.value);

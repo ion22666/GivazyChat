@@ -9,7 +9,7 @@ function MyApp({ Component, pageProps }) {
 
   Router.events.on("routeChangeStart", () => setLoading(true));
   Router.events.on("routeChangeComplete", () => {
-    setTimeout(() => setLoading(false), 1050); // Adăugați o întârziere de 2.5 secunde
+    setTimeout(() => setLoading(false), 700); 
   });
 
   return (

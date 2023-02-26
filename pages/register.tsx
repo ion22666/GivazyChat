@@ -86,6 +86,7 @@ function RegisterPage() {
                         type="email"
                         required
                         name="email"
+                        id="email"
                     />
                     <br />
                     <label className="text-white" htmlFor=" username ">
@@ -97,6 +98,7 @@ function RegisterPage() {
                         type="text"
                         required
                         name="username"
+                        id="username"
                     />
                     <br />
                     <label className="text-white" htmlFor="Password">
@@ -104,6 +106,7 @@ function RegisterPage() {
                     </label>
                     <br />
                     <input
+                        id="password"
                         name="password"
                         className="w-full rounded"
                         type="password"
@@ -117,6 +120,7 @@ function RegisterPage() {
                     </label>
                     <br />
                     <input
+                        id="confirmPassword"
                         name="confirmPassword"
                         className="w-full rounded"
                         type="password"
@@ -134,6 +138,8 @@ function RegisterPage() {
                         <p className="text-red-600">Parolele nu coincid!</p>
                     )}
                     <button
+
+                        id="btnRegister"
                         disabled={!passwordsMatch || passwordLengthError}
                         className="bg-white mx-auto border px-3.5 w-full rounded font-semibold text-Black-Blue my-5"
                         type="submit"
@@ -142,12 +148,14 @@ function RegisterPage() {
                     </button>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <button
+                            id="btnForGoogle"
                             className="border bg-red-300 rounded-md "
                             type="button"
                         >
                             {"Google"}
                         </button>
                         <button
+                            id="btnForFacebook"
                             className="border bg-red-300  rounded-md "
                             type="button"
                         >
@@ -155,6 +163,7 @@ function RegisterPage() {
                         </button>
                     </div>
                     <button
+                        id="btnToLogin"
                         className=" text-white block  mb-2.5 mx-auto my-auto  "
                         onClick={handleButtonClick}
                         type="button"
