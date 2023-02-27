@@ -5,7 +5,9 @@
     "main": "index.js",
     "scripts": {
         "test": "npx jest --config ./__tests__/.config/jest.config.js",
-        "dev": "next dev"
+        "dev": "node server.js",
+        "start": "NODE_ENV=production node server.js",
+        "build": "next build"
     },
     "repository": {
         "type": "git",
