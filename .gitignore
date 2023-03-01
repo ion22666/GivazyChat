@@ -1,6 +1,6 @@
 package-lock.json
 .swc/
-
+.rollup.cache/
 
 
 ########## Astea de jos au fost generate de GitHub ##########
