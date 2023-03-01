@@ -7,6 +7,7 @@ function LoginPage() {
     const emailRef = React.useRef<HTMLInputElement>(null);
     const passwordRef = React.useRef<HTMLInputElement>(null);
 
+
     const handleFormSubmit = async (event) => {
         event.preventDefault();
 
@@ -62,10 +63,11 @@ function LoginPage() {
                     </h1>
                     <br />
                     <label className="text-white" htmlFor="email">
-                        {"Email"}
+                        {""}
                     </label>
                     <br />
                     <input
+                        placeholder="Email"
                         id="email"
                         className="w-full rounded"
                         type="email"
@@ -73,13 +75,14 @@ function LoginPage() {
                         ref={emailRef}
                     />
                     <br />
-                    <label className="text-white" htmlFor="password">
-                        {"Password"}
+                    <label className="text-white"  htmlFor="password">
+                        {""}
                     </label>
                     <br />
                     <input
+                        placeholder="Password"
                         id="password"
-                        className="w-full rounded"
+                        className="w-full rounded mb-5"
                         type="password"
                         name="password"
                         ref={passwordRef}
