@@ -8,15 +8,14 @@ module.exports = {
         // Or if using `src` directory:
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
-    darkMode : 'class',
+    darkMode: "class",
     theme: {
         extend: {
             colors: {
-                'Black-Blue' : '#01212d'
-            }
+                ["Black-Blue"]: "#01212d",
+                ["Verde"]: "#59e254",
+            },
         },
     },
     plugins: [],
-
-    
 };
