@@ -1,5 +1,5 @@
 declare namespace global {
-    type GoogleUserInfo = {
+    interface GoogleUserInfo {
         id: string;
         email: string;
         verified_email: string;
@@ -8,9 +8,8 @@ declare namespace global {
         family_name: string;
         picture: string;
         locale: string;
-    };
-    interface User extends imp.Document {
-        _id: any;
+    }
+    interface User {
         email?: string;
         username?: string;
         password?: string;
@@ -26,11 +25,18 @@ declare namespace global {
         createSession(): Promise<string>;
     }
 
-    interface Session extends mongoose.Document {
-        _id: any;
+    interface Session {
         userId: string;
         createdAt: number;
         refreshLifetime(): Promomise<void>;
     }
-}
 
+    interface Message {
+        sendAt: number;
+        content: string;
+    }
+    interface Chat {
+        participants: string[];
+        messages: Message[];
+    }
+}
