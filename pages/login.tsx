@@ -1,6 +1,14 @@
 import * as React from "react";
 import { useRouter } from "next/router";
 
+const google_oauth_redirect_url =
+    `https://accounts.google.com/o/oauth2/auth?` +
+    `client_id=${process.env.client_id}` +
+    `&redirect_uri=${process.env.redirect_uri}` +
+    `&response_type=${"code"}` +
+    `&scope=${"email%20profile"}`;
+
+
 function LoginPage() {
     const router = useRouter();
     const [formError, setFormError] = React.useState("");
@@ -97,13 +105,14 @@ function LoginPage() {
                         {"LOGIN"}
                     </button>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button
+                        <a
+                            href={google_oauth_redirect_url}
                             type="button"
                             className="border bg-red-300 rounded-md "
                             id="loginGoogleBtn"
                         >
                             {"Google"}
-                        </button>
+                        </a>
                         <button
                             type="button"
                             className="border bg-red-300  rounded-md"
