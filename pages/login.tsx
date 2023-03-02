@@ -60,62 +60,67 @@ function LoginPage() {
     };
 
     return (
-        <div className="grid place-items-center mt-20">
-            <div className="bg-Black-Blue border-2 leading-9 w-80 h-120 px-2.5 rounded-md">
+        <div className="grid place-items-center mt-28">
+            <div className="bg-neutral-800 border-2 leading-9 w-80 h-120 px-2.5 rounded-br-3xl rounded-tl-3xl ">
                 <form
                     onSubmit={handleFormSubmit}
                     encType="application/x-www-form-urlencoded"
                 >
-                    <h1 className="text-center mt-5 text-xl font-semibold text-white">
+                    <h1 className="text-center mt-7 text-2xl font-semibold text-white underline decoration-Verde">
                         {"Login"}
                     </h1>
+
                     <br />
+                    
                     <label className="text-white" htmlFor="email">
                         {""}
                     </label>
-                    <br />
+                    
                     <input
+                        
                         placeholder="Email"
                         id="email"
-                        className="w-full rounded"
+                        className="w-full rounded mt-5"
                         type="email"
                         name="email"
                         ref={emailRef}
                     />
-                    <br />
+                    
                     <label className="text-white"  htmlFor="password">
                         {""}
                     </label>
-                    <br />
+                  
                     <input
                         placeholder="Password"
                         id="password"
-                        className="w-full rounded mb-5"
+                        className="w-full rounded mb-5 mt-5"
                         type="password"
                         name="password"
                         ref={passwordRef}
                     />
-                    <br />
+                    
                     {formError && <p className="text-red-600">{formError}</p>}
                     <button
-                        className="bg-white mx-auto my-4 border px-3.5 w-full rounded font-semibold text-Black-Blue"
+                        className="bg-Verde mx-auto my-4 border px-3.5 w-full rounded font-semibold text-Black-Blue"
                         type="submit"
                         id="loginBtn"
                     >
                         {"LOGIN"}
                     </button>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
                         <a
                             href={google_oauth_redirect_url}
                             type="button"
-                            className="border bg-red-300 rounded-md "
+                            className="text-center border bg-slate-100 rounded-md "
                             id="loginGoogleBtn"
                         >
                             {"Google"}
                         </a>
+                        
                         <button
                             type="button"
-                            className="border bg-red-300  rounded-md"
+                            className="border bg-slate-100 rounded-md text-center"
                             id="loginFacebookBtn"
                         >
                             {"Facebook"}

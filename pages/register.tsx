@@ -67,13 +67,13 @@ function RegisterPage() {
 
     return (
         <div className=" grid place-items-center mt-10">
-            <div className=" bg-Black-Blue border-2 leading-9 w-80  h-120 px-2.5 rounded-md ">
+            <div className=" bg-neutral-800 border-2 leading-9 w-80  h-120 px-2.5 rounded-md ">
                 <form
                     onSubmit={handleFormSubmit}
                     method="POST"
                     encType="application/x-www-form-urlencoded"
                 >
-                    <h1 className="text-center mt-5 text-xl  font-semibold text-white   ">
+                    <h1 className="text-center mt-5 text-xl  font-semibold text-white underline decoration-Verde  ">
                         {"Register"}
                     </h1>
                     <br />
@@ -141,7 +141,7 @@ function RegisterPage() {
 
                         id="btnRegister"
                         disabled={!passwordsMatch || passwordLengthError}
-                        className="bg-white mx-auto border px-3.5 w-full rounded font-semibold text-Black-Blue my-5"
+                        className="bg-Verde mx-auto border px-3.5 w-full rounded font-semibold text-Black-Blue my-5"
                         type="submit"
                     >
                         {"Register"}

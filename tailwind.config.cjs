@@ -14,6 +14,7 @@ module.exports = {
             colors: {
                 ["Black-Blue"]: "#01212d",
                 ["Verde"]: "#59e254",
+                ["Night"] : "#0C090A"
             },
         },
     },
