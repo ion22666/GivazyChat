@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
-import { Chat } from "../models/chat";
+import { Chat } from "./models/chat";
 
-export const AppendWebSockets = server => {
+export const AppendWebSockets = (server: any) => {
     const io = new Server(server, { path: "/chat.socket" });
 
     io.on("connection", socket => {
