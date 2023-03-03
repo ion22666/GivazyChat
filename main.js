@@ -31,7 +31,7 @@ const ChatSchema = new mongoose.Schema({
 const Chat = (mongoose.models.Chat || mongoose.model("Chat", ChatSchema));
 
 const AppendWebSockets = (server) => {
-    const io = new Server(server, { path: "/chat.socket" });
+    const io = new Server(server, { path: "/api/chat.socket" });
     io.on("connection", socket => {
         console.log("new ws connection ", socket.id);
         socket.emit("pong");
@@ -62,7 +62,8 @@ const UserSchema = new mongoose.Schema({
             locale: { type: String },
         },
         facebook: {},
-    },
+    }
+    // {partialFilterExpression:{email: { $exists: true }}}
 });
 UserSchema.methods.createJWT = function () {
     return jwt.sign({ sub: this._id }, process.env.JWT_PRIVETE_KEY || "givazy", { algorithm: "HS256" });
@@ -109,6 +110,7 @@ const console_logger_middleware = (req, res, next) => {
 dotenv.config();
 const traditional_login_handler = async (req, res) => {
     const { email, password } = req.body;
+    console.log(email, password);
     // daca email sau password lipseste
     if (!email || !password) {
         return res.status(401).json({ message: "Some credentials are missing" });
@@ -120,7 +122,7 @@ const traditional_login_handler = async (req, res) => {
         return res.status(401).json({ message: "Email not associeted with any user" });
     }
     // se compara parola introdusa de user si parola corecta din baza de date
-    if (await bcrypt.compare(password, user.password)) {
+    if (!(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ message: "Password not correct" });
     }
     // create a JWT for the user witch will be used to authenticate the user without providing email and password on every request
@@ -138,7 +140,6 @@ async function getGoogleUserInfo (code, path) {
         redirect_uri: process.env.domain + path,
         grant_type: "authorization_code",
     }, { validateStatus: () => true });
-    console.log(token_response.data);
     let user_info_response = await axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${token_response.data.access_token}`);
     return user_info_response.data;
 }
@@ -206,6 +207,7 @@ const traditional_register_handler = async (req, res) => {
 
 dotenv.config();
 // google oauth register
+// receive the code -> get user's google email -> verify email not already in use -> create user -> create and send JWT
 const google_register_handler = async (req, res) => {
     try {
         // check for params
@@ -265,11 +267,11 @@ AppendWebSockets(httpServer);
         expressApp.use("", console_logger_middleware);
     }
     expressApp.use("", express.json());
-    expressApp.use("/_next", nextHook);
     expressApp.use("", express.urlencoded({ extended: true }));
     // auth not required
     {
         expressApp.use("/", express.static("public"));
+        expressApp.use("/_next", nextHook);
         expressApp.use("/login", nextHook);
         expressApp.use("/register", nextHook);
         expressApp.use("/api/login", login_router);

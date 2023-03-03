@@ -37,12 +37,13 @@ AppendWebSockets(httpServer);
     }
 
     expressApp.use("", express.json());
-    expressApp.use("/_next", nextHook);
+
     expressApp.use("", express.urlencoded({ extended: true }));
 
     // auth not required
     {
         expressApp.use("/", express.static("public"));
+        expressApp.use("/_next", nextHook);
         expressApp.use("/login", nextHook);
         expressApp.use("/register", nextHook);
 

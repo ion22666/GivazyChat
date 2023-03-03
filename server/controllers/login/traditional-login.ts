@@ -8,7 +8,7 @@ import { User } from "../../models/user";
 
 export const traditional_login_handler: Handler = async (req, res) => {
     const { email, password } = req.body;
-
+    console.log(email, password);
     // daca email sau password lipseste
     if (!email || !password) {
         return res.status(401).json({ message: "Some credentials are missing" });
@@ -23,7 +23,7 @@ export const traditional_login_handler: Handler = async (req, res) => {
     }
 
     // se compara parola introdusa de user si parola corecta din baza de date
-    if (await bcrypt.compare(password, user.password)) {
+    if (!(await bcrypt.compare(password, user.password))) {
         return res.status(401).json({ message: "Password not correct" });
     }
 
