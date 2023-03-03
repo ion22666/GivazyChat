@@ -1,6 +1,13 @@
 import * as React from "react";
 import { useRouter } from "next/router";
 
+// traditional login/register
+// 1. userul trimite credentialele la server ptrintrun fetch() request
+// 2. serverul ii raspunde cu OK sau NOT OK
+// 3. daca e NOT OK, serverul va transmite in response un mesaj de eroare -> afiseaza eraore la user in acest caz
+// 4. daca e OK, serverul va transmite un JWT pe care userul trebe sa il salvezi in LocalStorage
+// 
+
 const google_oauth_redirect_url =
     `https://accounts.google.com/o/oauth2/auth?` +
     `client_id=${process.env.client_id}` +
@@ -16,39 +23,50 @@ function LoginPage() {
     const passwordRef = React.useRef<HTMLInputElement>(null);
 
 
+    function input_is_valid () {
+        const email = emailRef.current.value;
+          const password = passwordRef.current.value;
+          if (!email) {
+              setFormError("Email not provided");
+              return false;
+          }
+          if (!password) {
+              setFormError("Password not provided");
+              return false;
+          }
+
+        return true;
+      }
+  
+
+
     const handleFormSubmit = async (event) => {
         event.preventDefault();
 
-        const email = emailRef.current.value;
-        const password = passwordRef.current.value;
-        if (!email) {
-            setFormError("Email not provided");
-            return;
-        }
-        if (!password) {
-            setFormError("Password not provided");
-            return;
-        }
+        if(input_is_valid()) return
+
         const formData = new FormData();
         formData.append("email", event.currentTarget.email.value);
         formData.append("password", event.currentTarget.password.value);
 
-        console.log("Form Data:", {
-            email: event.currentTarget.email.value,
-            password: event.currentTarget.password.value,
-        });
 
         try {
             const response = await fetch("/api/login", {
                 method: "POST",
                 body: formData,
             });
+          
+			if (!response.ok && setFormError("Login failed") === undefined) return;
+            		
+            const json  = await response.json();
 
-            if (response.ok) {
-                router.push("/");
-            } else {
-                throw new Error("Login failed");
-            }
+            if(!json.token && alert("Serverul nu nea trimis nici un token") === undefined) return;
+
+          	localStorage.setItem("token",json.token);
+            // dam render la home page, si acolo va fi un script care va apela api-ul pentru a extrage informatiile user-ului
+            return router.push("/");
+            // aici pagina login nu mai exista
+
         } catch (error) {
             console.error(error);
             setFormError("Invalid email or password");
@@ -80,7 +98,7 @@ function LoginPage() {
                         
                         placeholder="Email"
                         id="email"
-                        className="w-full rounded mt-5"
+                        className="w-full rounded-2xl mt-5 text-center"
                         type="email"
                         name="email"
                         ref={emailRef}
@@ -93,7 +111,7 @@ function LoginPage() {
                     <input
                         placeholder="Password"
                         id="password"
-                        className="w-full rounded mb-5 mt-5"
+                        className="w-full rounded-br-2xl rounded-tl-2xl mb-5 mt-5 text-center"
                         type="password"
                         name="password"
                         ref={passwordRef}
@@ -101,12 +119,13 @@ function LoginPage() {
                     
                     {formError && <p className="text-red-600">{formError}</p>}
                     <button
-                        className="bg-Verde mx-auto my-4 border px-3.5 w-full rounded font-semibold text-Black-Blue"
+                        className="bg-Verde mx-auto mb-4 border px-3.5 w-full rounded font-semibold text-Black-Blue"
                         type="submit"
                         id="loginBtn"
                     >
                         {"LOGIN"}
                     </button>
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         
                         <a

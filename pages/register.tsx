@@ -76,6 +76,7 @@ function RegisterPage() {
                     <h1 className="text-center mt-5 text-xl  font-semibold text-white underline decoration-Verde  ">
                         {"Register"}
                     </h1>
+                    
                     <br />
                     <label className="text-white" htmlFor="Email ">
                         {"Email"}
