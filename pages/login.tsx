@@ -45,15 +45,20 @@ function LoginPage() {
 
         if(input_is_valid()) return
 
-        const formData = new FormData();
-        formData.append("email", event.currentTarget.email.value);
-        formData.append("password", event.currentTarget.password.value);
+        const json_body = {
+            email: event.currentTarget.email.value,
+            password:event.currentTarget.password.value
+          };
+        
 
 
-        try {
+          try {
             const response = await fetch("/api/login", {
                 method: "POST",
-                body: formData,
+              	headers:{
+                  "Content-Type": "application/json"
+                },
+                body: JSON.stringify(json_body),
             });
           
 			if (!response.ok && setFormError("Login failed") === undefined) return;
