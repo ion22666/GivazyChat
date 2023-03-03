@@ -21,8 +21,7 @@ declare namespace global {
             };
         };
 
-        clearSessions(): Promise<void>;
-        createSession(): Promise<string>;
+        createJWT(): string;
     }
 
     interface Session {
@@ -30,13 +29,23 @@ declare namespace global {
         createdAt: number;
         refreshLifetime(): Promomise<void>;
     }
+    interface JWT {
+        sub: string;
+        exp?: number;
+    }
 
     interface Message {
         sendAt: number;
         content: string;
     }
     interface Chat {
-        participants: string[];
+        participants: string[] | Types.ObjectId[];
         messages: Message[];
+    }
+}
+
+declare namespace Express {
+    interface Request {
+        user: global.User;
     }
 }
