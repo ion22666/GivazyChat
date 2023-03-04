@@ -11,6 +11,7 @@ export default function Document() {
                         overflow:hidden;
                     }
                 `}</style>
+                <script src="scripts/request-helper.js"></script>
             </Head>
             <body className="w-full h-full overflow-hidden">
                 <Main />
