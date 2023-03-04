@@ -50,6 +50,7 @@ const UserSchema = new mongoose.Schema({
     email: { type: String, unique: true, sparse: true },
     username: { type: String },
     password: { type: String },
+    picture: { type: String },
     oauth: {
         google: {
             id: { type: String },
@@ -62,8 +63,7 @@ const UserSchema = new mongoose.Schema({
             locale: { type: String },
         },
         facebook: {},
-    }
-    // {partialFilterExpression:{email: { $exists: true }}}
+    },
 });
 UserSchema.methods.createJWT = function () {
     return jwt.sign({ sub: this._id }, process.env.JWT_PRIVETE_KEY || "givazy", { algorithm: "HS256" });
@@ -110,24 +110,22 @@ const console_logger_middleware = (req, res, next) => {
 dotenv.config();
 const traditional_login_handler = async (req, res) => {
     const { email, password } = req.body;
-    console.log(email, password);
     // daca email sau password lipseste
     if (!email || !password) {
-        return res.status(401).json({ message: "Some credentials are missing" });
+        return res.status(401).json({ error: "Some credentials are missing" });
     }
     // cauta in bazade da date un user cu emailul dat
     const user = await User.findOne({ email });
     // daca nu a fost gasit nici un user
     if (!user) {
-        return res.status(401).json({ message: "Email not associeted with any user" });
+        return res.status(401).json({ error: "Email not associeted with any user" });
     }
     // se compara parola introdusa de user si parola corecta din baza de date
     if (!(await bcrypt.compare(password, user.password))) {
-        return res.status(401).json({ message: "Password not correct" });
+        return res.status(401).json({ error: "Password not correct" });
     }
     // create a JWT for the user witch will be used to authenticate the user without providing email and password on every request
     const token = user.createJWT();
-    res.set("Authorization", `Bearer ${token}`);
     return res.status(200).json({ token });
 };
 
@@ -144,6 +142,21 @@ async function getGoogleUserInfo (code, path) {
     return user_info_response.data;
 }
 
+var inject_jwt_into_localstorage = (token) => {
+    return `
+    <!DOCTYPE html>
+    <html>
+        <head>
+            <meta charset="UTF-8">
+            <script>
+                localStorage.setItem("token","${token}");
+                window.location="/";
+            </script>
+        </head>
+    </html>
+`;
+};
+
 dotenv.config();
 // google oauth login
 // receive the code -> get user's google email -> verify if exists -> create and send JWT
@@ -159,8 +172,7 @@ const google_login_handler = async (req, res) => {
         if (!user)
             throw new Error("The google account has no user associated with it");
         const token = user.createJWT();
-        res.set("Authorization", `Bearer ${token}`);
-        return res.status(200).json({ token });
+        return res.status(200).send(inject_jwt_into_localstorage(token));
     }
     catch (e) {
         if (process.env.API_ONLY)
@@ -219,11 +231,10 @@ const google_register_handler = async (req, res) => {
         if (await User.findOne({ "oauth.google.email": user_info.email }))
             throw new Error("Google account aleady in use");
         // creem userul
-        let user = await User.create({ oauth: { google: user_info } });
+        let user = await User.create({ username: user_info.name, picture: user_info.picture, oauth: { google: user_info } });
         // cream un JWT pentru user
         const token = user.createJWT();
-        res.set("Authorization", `Bearer ${token}`);
-        return res.status(200).json({ token });
+        return res.status(200).send(inject_jwt_into_localstorage(token));
     }
     catch (e) {
         if (process.env.API_ONLY)
@@ -245,6 +256,23 @@ var register_router = express
     .post("/", traditional_register_handler)
     .get("/google", google_register_handler)
     .get("/facebook", facebook_register_handler);
+
+dotenv.config();
+const delete_user = async (req, res) => {
+    try {
+        await User.deleteOne(req.user._id);
+        res.sendStatus(200);
+    }
+    catch (e) {
+        res.status(500).json({ error: e });
+    }
+};
+
+dotenv.config();
+const get_user_data = async (req, res) => res.json({ data: req.user });
+
+dotenv.config();
+var user_router = express.Router().get("/data", get_user_data).get("/delete", delete_user);
 
 dotenv.config();
 const dev = process.env.NODE_ENV !== "production";
@@ -276,13 +304,15 @@ AppendWebSockets(httpServer);
         expressApp.use("/register", nextHook);
         expressApp.use("/api/login", login_router);
         expressApp.use("/api/register", register_router);
+        // Serve Next.js pages
+        !process.env.API_ONLY && expressApp.get("/", nextHook);
     }
     // redirect to login if missing the cookie/jwt
     expressApp.use("", auth_middleware);
     // auth required
     {
-        // Serve Next.js pages
-        !process.env.API_ONLY && expressApp.get("*", (req, res) => nextHandle(req, res));
+        expressApp.use("/api/test-token", (req, res) => res.sendStatus(200));
+        expressApp.use("/api/user", user_router);
     }
     httpServer.listen(port, hostname, () => {
         console.log(`>>> Ready on http://${hostname}:${port}`);
