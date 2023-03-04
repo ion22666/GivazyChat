@@ -5,6 +5,7 @@ import { Handler } from "express";
 
 import { User } from "../../models/user";
 import getGoogleUserInfo from "../../utils/getGoogleUserInfo";
+import inject_jwt_into_localstorage from "../../utils/inject_jwt_into_localstorage";
 
 // google oauth login
 // receive the code -> get user's google email -> verify if exists -> create and send JWT
@@ -22,8 +23,7 @@ export const google_login_handler: Handler = async (req, res) => {
 
         const token = user.createJWT();
 
-        res.set("Authorization", `Bearer ${token}`);
-        return res.status(200).json({ token });
+        return res.status(200).send(inject_jwt_into_localstorage(token));
     } catch (e) {
         if (process.env.API_ONLY) return res.status(401).json({ error: e });
         return res.status(401).redirect("/login?errors=" + encodeURIComponent(e));
