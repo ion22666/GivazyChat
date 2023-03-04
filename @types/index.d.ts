@@ -13,6 +13,7 @@ declare namespace global {
         email?: string;
         username?: string;
         password?: string;
+        picture?: string;
         oauth?: {
             google?: GoogleUserInfo;
             microsoft?: {
@@ -48,4 +49,9 @@ declare namespace Express {
     interface Request {
         user: global.User;
     }
+}
+
+interface Window {
+    token: string | undefined;
+    request: typeof fetch;
 }

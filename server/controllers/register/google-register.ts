@@ -14,13 +14,13 @@ export const google_register_handler: Handler = async (req, res) => {
         if (!req.query.code) throw new Error("Something bad happened with google auth");
 
         // fetch user info
-        let user_info = await getGoogleUserInfo(req.query.code.toString(), "/api/register/google");
+        let user_info: global.GoogleUserInfo = await getGoogleUserInfo(req.query.code.toString(), "/api/register/google");
 
         // make sure that the email is not already in use
         if (await User.findOne({ "oauth.google.email": user_info.email })) throw new Error("Google account aleady in use");
 
         // creem userul
-        let user = await User.create({ oauth: { google: user_info } });
+        let user = await User.create({ picture: user_info.picture, oauth: { google: user_info } });
 
         // cream un JWT pentru user
         const token = user.createJWT();
