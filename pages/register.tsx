@@ -149,6 +149,7 @@ function RegisterPage() {
                     </button>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <button
+                            onClick={()=>window.location.href = window.getGoogleRedirectLink("/api/register/google")}
                             id="btnForGoogle"
                             className="border bg-red-300 rounded-md "
                             type="button"

@@ -8,20 +8,11 @@ import { useRouter } from "next/router";
 // 4. daca e OK, serverul va transmite un JWT pe care userul trebe sa il salvezi in LocalStorage
 // 
 
-const google_oauth_redirect_url =
-    `https://accounts.google.com/o/oauth2/auth?` +
-    `client_id=${process.env.client_id}` +
-    `&redirect_uri=${process.env.redirect_uri}` +
-    `&response_type=${"code"}` +
-    `&scope=${"email%20profile"}`;
-
-
 function LoginPage() {
     const router = useRouter();
     const [formError, setFormError] = React.useState("");
     const emailRef = React.useRef<HTMLInputElement>(null);
     const passwordRef = React.useRef<HTMLInputElement>(null);
-
 
     function input_is_valid () {
         const email = emailRef.current.value;
@@ -43,7 +34,7 @@ function LoginPage() {
     const handleFormSubmit = async (event) => {
         event.preventDefault();
 
-        if(input_is_valid()) return
+        if(!input_is_valid()) return
 
         const json_body = {
             email: event.currentTarget.email.value,
@@ -133,14 +124,14 @@ function LoginPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         
-                        <a
-                            href={google_oauth_redirect_url}
+                        <button
+                            onClick={()=>window.location.href = window.getGoogleRedirectLink("/api/login/google")}
                             type="button"
                             className="text-center border bg-slate-100 rounded-md "
                             id="loginGoogleBtn"
                         >
                             {"Google"}
-                        </a>
+                        </button>
                         
                         <button
                             type="button"
