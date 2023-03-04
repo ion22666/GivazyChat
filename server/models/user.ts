@@ -10,6 +10,7 @@ const UserSchema = new mongoose.Schema({
     email: { type: String, unique: true, sparse: true },
     username: { type: String },
     password: { type: String },
+    picture: { type: String },
     oauth: {
         google: {
             id: { type: String },

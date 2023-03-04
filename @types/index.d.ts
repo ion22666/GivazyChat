@@ -1,3 +1,5 @@
+/** @type {import('mongoose').QueryWithHelpers} */
+
 declare namespace global {
     interface GoogleUserInfo {
         id: string;
@@ -10,6 +12,7 @@ declare namespace global {
         locale: string;
     }
     interface User {
+        _id: stirng;
         email?: string;
         username?: string;
         password?: string;
@@ -47,11 +50,12 @@ declare namespace global {
 
 declare namespace Express {
     interface Request {
-        user: global.User;
+        user: global.User & QueryWithHelpers;
     }
 }
 
 interface Window {
     token: string | undefined;
     request: typeof fetch;
+    getGoogleRedirectLink(path: stirng): string;
 }
