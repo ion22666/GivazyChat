@@ -2,7 +2,7 @@ import { Server } from "socket.io";
 import { Chat } from "./models/chat";
 
 export const AppendWebSockets = (server: any) => {
-    const io = new Server(server, { path: "/chat.socket" });
+    const io = new Server(server, { path: "/api/chat.socket" });
 
     io.on("connection", socket => {
         console.log("new ws connection ", socket.id);

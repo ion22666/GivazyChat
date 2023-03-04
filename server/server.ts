@@ -10,8 +10,9 @@ import { auth_middleware } from "./middlewares/auth-middleware";
 import { console_logger_middleware } from "./middlewares/console-logger-middleware";
 import { parse } from "url";
 
-import login_router from "./routers/login";
-import register_router from "./routers/register";
+import login_router from "./routers/loginRouter";
+import register_router from "./routers/registerRouter";
+import user_router from "./routers/userRouter";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
@@ -49,6 +50,9 @@ AppendWebSockets(httpServer);
 
         expressApp.use("/api/login", login_router);
         expressApp.use("/api/register", register_router);
+
+        // Serve Next.js pages
+        !process.env.API_ONLY && expressApp.get("/", nextHook);
     }
 
     // redirect to login if missing the cookie/jwt
@@ -56,8 +60,8 @@ AppendWebSockets(httpServer);
 
     // auth required
     {
-        // Serve Next.js pages
-        !process.env.API_ONLY && expressApp.get("*", (req, res) => nextHandle(req, res));
+        expressApp.use("/api/test-token", (req, res) => res.sendStatus(200));
+        expressApp.use("/api/user", user_router);
     }
 
     httpServer.listen(port, hostname, () => {
