@@ -12,6 +12,8 @@ export default function Document() {
                     }
                 `}</style>
                 <script src="scripts/request-helper.js"></script>
+                <meta name="client_id" content={process.env.client_id} />
+                <meta name="domain" content={process.env.domain} />
             </Head>
             <body className="w-full h-full overflow-hidden">
                 <Main />
