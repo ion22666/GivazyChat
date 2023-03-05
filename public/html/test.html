@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.socket.io/4.6.0/socket.io.min.js"
+        integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
+        crossorigin="anonymous"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="time"></div>
+    <button id="update">Update Time</button>
+    <script>
+        const timeDiv = document.querySelector("#time");
+        const updateButton = document.querySelector("#update");
+
+        const socket = io({
+            autoConnect: false,
+            extraHeaders: {
+                Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+        });
+        socket.on("connect_error", (err) => {
+            console.log(err.message); // prints the message associated with the error
+        });
+        updateButton.onclick = () => socket.emit("ping", "HELLO");
+
+        socket.on("pong", () => timeDiv.innerHTML = new Date().toISOString());
+
+        socket.on("update response", (messages) => {
+            console.log(messages);
+            setMessages(messages);
+        });
+        socket.connect();
+    </script>
+</body>
+
+</html>

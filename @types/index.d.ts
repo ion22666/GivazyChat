@@ -28,6 +28,8 @@ declare namespace global {
         createJWT(): string;
     }
 
+    interface UserData extends User {}
+
     interface Session {
         userId: string;
         createdAt: number;

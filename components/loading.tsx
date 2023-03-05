@@ -1,5 +1,5 @@
 import React from "react";
-import ChatBubble from "./svg/ChatBubble";
+import ChatBubbleIcon from "./svg/ChatBubble";
 
 export const transition_duration = 100;
 export const minimum_time_loading = 1500;
@@ -45,7 +45,7 @@ export const Loading: React.FunctionComponent<Props> = ({ is_loading }: Props) =
             style={{ zIndex: "999999", opacity: opacity, display: is_visible ? "flex" : "none", transitionDuration: transition_duration + "ms" }}
             className="flex justify-center items-center w-full h-full fixed top-0 left-0 loading-screen ease-linear backdrop-blur-md bg-black bg-opacity-10"
         >
-            <ChatBubble className="bi bi-chat-fill absolute h-64 md:h-64 lg:h-64 w-auto text-Verde" />
+            <ChatBubbleIcon className="bi bi-chat-fill absolute h-64 md:h-64 lg:h-64 w-auto text-Verde" />
 
             <div className="flex justify-center items-center top-0 left-0 gap-6">
                 <div className="bg-white h-5 aspect-square rounded-full animate-loading-dot" style={{ animationDelay: "0ms" }}></div>
