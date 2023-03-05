@@ -14,10 +14,63 @@
     }
 }
 
+@font-face {
+    font-family: "Whyte-Black";
+    src: url(/fonts/Whyte-Black.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Bold";
+    src: url(/fonts/Whyte-Bold.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Book";
+    src: url(/fonts/Whyte-Book.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-ExtraLight";
+    src: url(/fonts/Whyte-ExtraLight.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Heavy";
+    src: url(/fonts/Whyte-Heavy.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-HeavyItalic";
+    src: url(/fonts/Whyte-HeavyItalic.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Italic";
+    src: url(/fonts/Whyte-Italic.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Light";
+    src: url(/fonts/Whyte-Light.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Medium";
+    src: url(/fonts/Whyte-Medium.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Regular";
+    src: url(/fonts/Whyte-Regular.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Super";
+    src: url(/fonts/Whyte-Super.woff) format("woff");
+}
+@font-face {
+    font-family: "Whyte-Thin";
+    src: url(/fonts/Whyte-Thin.woff) format("woff");
+}
+
+input:focus-visible {
+    outline: 0;
+}
+
 .animate-loading-dot {
     animation: loading-dots 1s ease-in-out infinite;
 }
 
-body{
-    background-image: url("./assets/Sprinkle.svg")
+body {
+    background-image: url("./assets/Sprinkle.svg");
 }
