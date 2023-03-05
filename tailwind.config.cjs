@@ -14,8 +14,22 @@ module.exports = {
             colors: {
                 ["Black-Blue"]: "#01212d",
                 ["Verde"]: "#59e254",
-                ["Night"] : "#0C090A"
+                ["Night"]: "#0C090A",
             },
+        },
+        fontFamily: {
+            "Whyte-Black": "Whyte-Black",
+            "Whyte-Bold": "Whyte-Bold",
+            "Whyte-Book": "Whyte-Book",
+            "Whyte-ExtraLight": "Whyte-ExtraLight",
+            "Whyte-Heavy": "Whyte-Heavy",
+            "Whyte-HeavyItalic": "Whyte-HeavyItalic",
+            "Whyte-Italic": "Whyte-Italic",
+            "Whyte-Light": "Whyte-Light",
+            "Whyte-Medium": "Whyte-Medium",
+            "Whyte-Regular": "Whyte-Regular",
+            "Whyte-Super": "Whyte-Super",
+            "Whyte-Thin": "Whyte-Thin",
         },
     },
     plugins: [],
