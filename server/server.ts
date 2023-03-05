@@ -13,6 +13,7 @@ import { parse } from "url";
 import login_router from "./routers/loginRouter";
 import register_router from "./routers/registerRouter";
 import user_router from "./routers/userRouter";
+import { MongoConnectionPromise } from "./database/mongodb";
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
@@ -31,6 +32,7 @@ const httpServer = http.createServer(expressApp);
 AppendWebSockets(httpServer);
 
 (async () => {
+    await MongoConnectionPromise;
     if (!process.env.API_ONLY) {
         await nextApp.prepare();
     } else {

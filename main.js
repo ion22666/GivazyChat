@@ -17,7 +17,7 @@ var config = {
 };
 
 mongoose.set("strictQuery", true);
-mongoose.connect(`mongodb+srv://${config.USERNAME}:${config.PASSWORD}@cluster0.wgurxzm.mongodb.net/${config.DATABASE}?retryWrites=true&w=majority`);
+const MongoConnectionPromise = mongoose.connect(`mongodb+srv://${config.USERNAME}:${config.PASSWORD}@cluster0.wgurxzm.mongodb.net/${config.DATABASE}?retryWrites=true&w=majority`);
 
 const ChatSchema = new mongoose.Schema({
     participants: [mongoose.Schema.Types.ObjectId],
@@ -29,20 +29,6 @@ const ChatSchema = new mongoose.Schema({
     ],
 });
 const Chat = (mongoose.models.Chat || mongoose.model("Chat", ChatSchema));
-
-const AppendWebSockets = (server) => {
-    const io = new Server(server, { path: "/api/chat.socket" });
-    io.on("connection", socket => {
-        console.log("new ws connection ", socket.id);
-        socket.emit("pong");
-        socket.on("ping", () => socket.emit("pong"));
-        socket.on("update request", async () => {
-            console.log("AAAAAAAAAAA");
-            console.log("Messages", await Chat.find());
-            socket.emit("update response", (await Chat.find({}))[0].messages);
-        });
-    });
-};
 
 dotenv.config();
 // intrebatil pe giovanni ce se intampla aici :(
@@ -70,25 +56,50 @@ UserSchema.methods.createJWT = function () {
 };
 const User = (mongoose.models.User || mongoose.model("User", UserSchema));
 
+var getUserFromToken = async (token) => {
+    if (!token)
+        throw new Error("Auth token missing on");
+    let payload = ((e) => (typeof e === "string" ? JSON.parse(e) : e)).call(null, jwt.verify(token, process.env.JWT_PRIVETE_KEY || "givazy", { algorithms: ["HS256"] }));
+    if (!payload.sub)
+        throw new Error("Invalid token");
+    const user = await User.findOne({ _id: payload.sub });
+    if (!user)
+        throw new Error("The email from the JWT provided is not associeated to any user");
+    return user;
+};
+
+const AppendWebSockets = (httpServer) => {
+    const io = new Server(httpServer, { path: "/api/chat.socket" });
+    io.use(async (socket, next) => {
+        console.log("AAAAAAAAAAAAAAAA");
+        try {
+            let user = await getUserFromToken(socket.handshake.headers["authorization"].split(" ")[1]);
+            socket.user = user;
+            return next();
+        }
+        catch (e) {
+            return next(new Error("Authentication error: " + e));
+        }
+    });
+    io.on("connection", socket => {
+        console.log("new ws connection ", socket.id);
+        socket.emit("pong");
+        socket.on("ping", () => socket.emit("pong"));
+        socket.on("update request", async () => {
+            socket.emit("update response", (await Chat.find({}))[0].messages);
+        });
+    });
+};
+
 dotenv.config();
 const auth_middleware = async (req, res, next) => {
     var _a;
     try {
-        const token = (_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1];
-        if (!token)
-            throw new Error("Auth token missing on" + req.path);
-        let payload = ((e) => (typeof e === "string" ? JSON.parse(e) : e)).call(null, jwt.verify(token, process.env.JWT_PRIVETE_KEY || "givazy", { algorithms: ["HS256"] }));
-        if (!payload.sub)
-            throw new Error("Invalid token");
-        const user = await User.findOne({ _id: payload.sub });
-        if (!user)
-            throw new Error("The email from the JWT provided is not associeated to any user");
-        req.user = user;
+        req.user = await getUserFromToken((_a = req.headers.authorization) === null || _a === void 0 ? void 0 : _a.split(" ")[1]);
         return next();
     }
     catch (e) {
-        if (process.env.NODE_ENV !== "production")
-            console.log(e);
+        // if (process.env.NODE_ENV !== "production") console.log(e);
         if (process.env.API_ONLY)
             return res.status(401).json({ error: e });
         return res.redirect("/login?errors=" + encodeURIComponent(e));
@@ -288,6 +299,7 @@ const expressApp = express();
 const httpServer = http.createServer(expressApp);
 AppendWebSockets(httpServer);
 (async () => {
+    await MongoConnectionPromise;
     if (!process.env.API_ONLY) {
         await nextApp.prepare();
     }
