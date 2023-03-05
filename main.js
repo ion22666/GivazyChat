@@ -10,6 +10,7 @@ import { parse } from 'url';
 import bcrypt from 'bcrypt';
 import axios from 'axios';
 
+dotenv.config();
 var config = {
     DATABASE: "givazy",
     USERNAME: process.env.MONGODB_USERNAME,
@@ -69,16 +70,15 @@ var getUserFromToken = async (token) => {
 };
 
 const AppendWebSockets = (httpServer) => {
-    const io = new Server(httpServer, { path: "/api/chat.socket" });
+    const io = new Server(httpServer);
     io.use(async (socket, next) => {
-        console.log("AAAAAAAAAAAAAAAA");
         try {
             let user = await getUserFromToken(socket.handshake.headers["authorization"].split(" ")[1]);
             socket.user = user;
             return next();
         }
         catch (e) {
-            return next(new Error("Authentication error: " + e));
+            return next(new Error("Authentication error"));
         }
     });
     io.on("connection", socket => {

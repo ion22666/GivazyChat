@@ -1,6 +1,4 @@
 import dotenv from "dotenv";
-dotenv.config();
-
 import express, { Handler, Router } from "express";
 import next from "next";
 import http from "http";
@@ -14,6 +12,8 @@ import login_router from "./routers/loginRouter";
 import register_router from "./routers/registerRouter";
 import user_router from "./routers/userRouter";
 import { MongoConnectionPromise } from "./database/mongodb";
+
+dotenv.config();
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
