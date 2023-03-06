@@ -40,7 +40,7 @@ const messages = [
 ];
 
 const Chat: React.FunctionComponent = () => {
-    let [userData, SetUserData] = React.useContext(AppContext);
+    let {userData, setUserData} = React.useContext(AppContext);
 
     return (
         <div className="bg-stone-900 w-full h-full flex flex-col place-content-stretch">
