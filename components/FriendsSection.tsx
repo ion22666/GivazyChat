@@ -21,19 +21,19 @@ const views: { name: Views; Component: React.FunctionComponent<React.DetailedHTM
     {
         name: "Padding",
         Component: PaddingFriends,
-},
+    },
 ];
 
 const FriendsSection: React.FunctionComponent = () => {
     const { userData, userFriendsData, chats, activeChat, setActiveChat, isMobile } = React.useContext(AppContext);
-
-    if (!userData || !userFriendsData || !chats) return <div>{"Loading..."}</div>;
-
     let [activeView, setActiveView] = React.useState<Views>("Online");
+
+    const isReady = userData && userFriendsData && chats;
+
+    if (!isReady) return <div>{"Loading..."}</div>;
 
     return (
         <div className="w-full h-full flex flex-col gap-2">
-            
             <div
                 style={{ display: isMobile ? "none" : "flex" }}
                 className="h-16 w-full p-2 bg-white bg-opacity-10 rounded-lg flex flex-row gap-2 items-center [&>*]:text-2xl [&>*]:mx-1  text-white [&>*]:font-Whyte-Book"
@@ -64,7 +64,7 @@ const FriendsSection: React.FunctionComponent = () => {
             <div className="w-full flex-grow rounded-lg">
                 {views.map(({ name, Component }) => {
                     const display: React.CSSProperties = activeView !== name ? { display: "none" } : {};
-                    return <Component style={{ height: "100%", width: "100%", borderRadius: "0.5rem", padding: "1rem", ...display }} />;
+                    return <Component key={name} style={{ height: "100%", width: "100%", borderRadius: "0.5rem", padding: "1rem", ...display }} />;
                 })}
             </div>
         </div>

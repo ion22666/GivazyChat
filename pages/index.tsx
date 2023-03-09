@@ -1,11 +1,10 @@
+import App from "next/app";
 import * as React from "react";
 
 import io, { Socket } from "socket.io-client";
 
-import Chat from "../components/Chat";
-import FirstSection from "../components/FirstSection";
-import FriendsSection from "../components/FriendsSection";
-import SecondSection from "../components/SecondSection";
+import DesktopIndexComponent from "../components/DesktopIndexComponent";
+import MobileIndexComponent from "../components/MobileIndexComponent";
 
 let socket: Socket;
 
@@ -85,38 +84,21 @@ function HomePage() {
         })();
     }, []);
 
-    return (
-        <AppContext.Provider
-            value={{
-                ...(InitialAppContext as AppContext),
-                userData,
-                setUserData,
-                chats,
-                setChats,
-                activeChat,
-                setActiveChat,
-                userFriendsData,
-                setUserFriendsData,
-                socket,
-                isMobile,
-            }}
-        >
-            <div className="w-full h-full flex flex-col">
-                <div className="h-full w-full flex flex-row bg-black gap-2 p-2 flex-grow" style={{ ...(isMobile ? { padding: "0 !important" } : {}) }}>
-                    <div style={{ ...(isMobile ? { display: "none" } : {}) }} className="w-14 bg-Gray1 rounded-lg">
-                        <FirstSection />
-                    </div>
-                    <div style={{ ...(isMobile ? { display: "none" } : {}) }} className="w-72 bg-Gray2 rounded-lg">
-                        <SecondSection />
-                    </div>
-                    <div className="flex-grow bg-Gray3 rounded-lg" style={{ ...(isMobile ? { borderRadius: "0 !important" } : {}) }}>
-                        {activeChat ? <Chat /> : <FriendsSection />}
-                    </div>
-                </div>
-                <div className="w-full h-10 bg-white" style={{ ...(!isMobile ? { display: "none" } : {}) }}></div>
-            </div>
-        </AppContext.Provider>
-    );
+    const AppContextValue: AppContext = {
+        ...(InitialAppContext as AppContext),
+        userData,
+        setUserData,
+        chats,
+        setChats,
+        activeChat,
+        setActiveChat,
+        userFriendsData,
+        setUserFriendsData,
+        socket,
+        isMobile,
+    };
+
+    return <AppContext.Provider value={AppContextValue}>{isMobile ? <MobileIndexComponent /> : <DesktopIndexComponent />}</AppContext.Provider>;
 }
 
 export default HomePage;

@@ -5,9 +5,10 @@ import { AppContext } from "../pages";
 const SecondSection: React.FunctionComponent = () => {
     const { userData, userFriendsData, setUserFriendsData, chats, activeChat, setActiveChat, socket, isMobile } = React.useContext(AppContext);
 
-    if (!userData || !userFriendsData || !chats) return <div>{"Loading..."}</div>;
-
+    const isReady = userData && userFriendsData && chats;
+    
     React.useEffect(() => {
+        if (!isReady) return;
         socket.emit("my online friends");
         socket.on("your online friends", (online_friends: { friendId: string; chatId: string }[]) => {
             online_friends.forEach(({ friendId, chatId }) => {
@@ -20,6 +21,9 @@ const SecondSection: React.FunctionComponent = () => {
             socket.off("your online friends");
         };
     }, []);
+
+    if (!isReady) return <div>{"Loading..."}</div>;
+
     return (
         <div className="w-full h-full p-4 rounded-lg">
             <div className="w-full text-xl text-stone-300 pb-4"> {"Direct Messages"} </div>
