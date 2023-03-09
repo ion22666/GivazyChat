@@ -67,7 +67,7 @@ function HomePage() {
     const [userFriendsData, setUserFriendsData] = React.useState<any>();
     const [chats, setChats] = React.useState<any>();
     const [activeChat, setActiveChat] = React.useState<any>();
-    const [activeView, setActiveView] = React.useState<any>();
+    const [activeView, setActiveView] = React.useState<any>("friends");
 
     const [isMobile, setIsMobile] = React.useState<any>(true);
 
@@ -124,7 +124,7 @@ function HomePage() {
         isMobile,
     };
 
-    const ActiveViewComponent = views.find(v => (v.name = activeView)).Component;
+    const ActiveViewComponent = views.find(v => (v.name === activeView)).Component;
 
     const desktopReturn = (
         <div className="flex h-full w-full flex-col">
