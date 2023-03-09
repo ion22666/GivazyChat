@@ -3,7 +3,7 @@ dotenv.config();
 
 import { Handler } from "express";
 
-import { User } from "../../models/user";
+import { User } from "../../models/userModel";
 import getGoogleUserInfo from "../../utils/getGoogleUserInfo";
 
 // facebook oauth login

@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { Chat } from "./models/chat";
+import { Chat } from "./models/chatModel";
 import getUserFromToken from "./utils/getUserFromToken";
 import { messageFactory } from "./utils/messageFactory";
 

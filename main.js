@@ -36,25 +36,57 @@ ChatSchema.methods.pushMessage = async function (message) {
 const Chat = (mongoose.models.Chat || mongoose.model("Chat", ChatSchema));
 
 dotenv.config();
-// intrebatil pe giovanni ce se intampla aici :(
 const UserSchema = new mongoose.Schema({
-    email: { type: String, unique: true, sparse: true },
-    username: { type: String },
-    password: { type: String },
-    picture: { type: String },
-    friends: [{ friendId: mongoose.Schema.Types.ObjectId, chatId: mongoose.Schema.Types.ObjectId }],
+    email: {
+        type: String,
+        unique: true,
+        sparse: true,
+        default: null,
+    },
+    username: {
+        type: String,
+        default: null,
+    },
+    password: {
+        type: String,
+        default: null,
+    },
+    picture: {
+        type: String,
+        default: null,
+    },
+    friends: {
+        type: Array({
+            friendId: mongoose.Schema.Types.ObjectId,
+            chatId: mongoose.Schema.Types.ObjectId,
+        }),
+        default: [],
+    },
+    pedingFriends: {
+        type: Array({
+            friendId: mongoose.Schema.Types.ObjectId,
+            requestedAt: Number,
+        }),
+        default: [],
+    },
     oauth: {
         google: {
-            id: { type: String },
-            email: { type: String, unique: true, sparse: true },
-            verified_email: { type: String },
-            name: { type: String },
-            given_name: { type: String },
-            family_name: { type: String },
-            picture: { type: String },
-            locale: { type: String },
+            type: {
+                id: { type: String },
+                email: { type: String, unique: true, sparse: true },
+                verified_email: { type: String },
+                name: { type: String },
+                given_name: { type: String },
+                family_name: { type: String },
+                picture: { type: String },
+                locale: { type: String },
+            },
+            default: null,
         },
-        facebook: {},
+        facebook: {
+            type: {},
+            default: null,
+        },
     },
 });
 UserSchema.methods.createJWT = function () {
@@ -335,6 +367,20 @@ const get_friends = async (req, res) => {
     }
 };
 
+const getPedingFriends = async (req, res) => {
+    try {
+        const users = await User.find({ _id: { $in: req.user.pedingFriends.map(f => f.friendId) } });
+        users.forEach(user => {
+            if (!user.picture)
+                user.picture = user.oauth.google.picture || "img/blank_profile.png";
+        });
+        return res.json({ data: users });
+    }
+    catch (e) {
+        res.status(500).json({ error: e });
+    }
+};
+
 dotenv.config();
 const get_user_data = async (req, res) => {
     var _a, _b;
@@ -344,7 +390,13 @@ const get_user_data = async (req, res) => {
 };
 
 dotenv.config();
-var user_router = express.Router().get("/data", get_user_data).get("/friends", get_friends).get("/chats", get_chats).get("/delete", delete_user);
+var user_router = express
+    .Router()
+    .get("/data", get_user_data)
+    .get("/friends", get_friends)
+    .get("/pedingFriends", getPedingFriends)
+    .get("/chats", get_chats)
+    .get("/delete", delete_user);
 
 dotenv.config();
 const dev = process.env.NODE_ENV !== "production";

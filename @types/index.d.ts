@@ -18,6 +18,7 @@ declare namespace global {
         password?: string;
         picture?: string;
         friends: { friendId: string; chatId: string }[];
+        pedingFriends: { friendId: string }[];
         oauth?: {
             google?: GoogleUserInfo;
             microsoft?: {

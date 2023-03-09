@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/user";
+import { User } from "../models/userModel";
 
 export default async (token: string | undefined): Promise<global.User> => {
     if (!token) throw new Error("Auth token missing on");

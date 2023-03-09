@@ -1,5 +1,5 @@
 import { Handler } from "express";
-import { Chat } from "../../models/chat";
+import { Chat } from "../../models/chatModel";
 
 export const get_chats: Handler = async (req, res) => {
     try {

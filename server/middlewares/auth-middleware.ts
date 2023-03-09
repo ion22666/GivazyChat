@@ -3,7 +3,7 @@ dotenv.config();
 
 import { Handler } from "express";
 import jwt from "jsonwebtoken";
-import { User } from "../models/user";
+import { User } from "../models/userModel";
 import getUserFromToken from "../utils/getUserFromToken";
 
 export const auth_middleware: Handler = async (req, res, next) => {

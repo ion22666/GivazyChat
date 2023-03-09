@@ -4,7 +4,7 @@ dotenv.config();
 import { Handler } from "express";
 import bcrypt from "bcrypt";
 
-import { User } from "../../models/user";
+import { User } from "../../models/userModel";
 
 export const traditional_login_handler: Handler = async (req, res) => {
     const { email, password } = req.body;
