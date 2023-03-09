@@ -1,0 +1,7 @@
+{
+  "pluginSearchDirs": ["./node_modules"],
+  "plugins": ["prettier-plugin-tailwindcss"],
+  "tabWidth": 4,
+  "printWidth": 180,
+  "arrowParens": "avoid"
+}
