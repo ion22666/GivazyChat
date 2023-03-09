@@ -1,10 +1,11 @@
-import App from "next/app";
 import * as React from "react";
 
 import io, { Socket } from "socket.io-client";
+import Chat from "../components/Chat";
 
-import DesktopIndexComponent from "../components/DesktopIndexComponent";
-import MobileIndexComponent from "../components/MobileIndexComponent";
+import FirstSection from "../components/FirstSection";
+import FriendsSection from "../components/FriendsSection";
+import SecondSection from "../components/SecondSection";
 
 let socket: Socket;
 
@@ -98,7 +99,30 @@ function HomePage() {
         isMobile,
     };
 
-    return <AppContext.Provider value={AppContextValue}>{isMobile ? <MobileIndexComponent /> : <DesktopIndexComponent />}</AppContext.Provider>;
+    const desktopReturn = (
+        <div className="w-full h-full flex flex-col">
+            <div className="h-full w-full flex flex-row bg-black gap-2 p-2 flex-grow">
+                <div className="w-14 bg-Gray1 rounded-lg">
+                    <FirstSection />
+                </div>
+                <div style={{ ...(isMobile ? { display: "none" } : {}) }} className="w-72 bg-Gray2 rounded-lg">
+                    <SecondSection />
+                </div>
+                <div className="flex-grow bg-Gray3 rounded-lg">{activeChat ? <Chat /> : <FriendsSection />}</div>
+            </div>
+        </div>
+    );
+
+    const mobileReturn = (
+        <div className="w-full h-full flex flex-col">
+            <div className="h-full w-full flex flex-row bg-black gap-2 flex-grow">
+                <div className="flex-grow bg-Gray3">{activeChat ? <Chat /> : <FriendsSection />}</div>
+            </div>
+            <div className="w-full h-10 bg-white"></div>
+        </div>
+    );
+
+    return <AppContext.Provider value={AppContextValue}>{isMobile ? mobileReturn : desktopReturn}</AppContext.Provider>;
 }
 
 export default HomePage;

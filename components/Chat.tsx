@@ -4,42 +4,6 @@ import SendIcon from "./svg/Send";
 import { AppContext } from "../pages";
 import Message from "./Message";
 
-const chat_partener_picture = "https://cdn.discordapp.com/avatars/992720734600310814/80c518a21fc828406c4f18c5313ba462.webp";
-const user_picture = "https://cdn.discordapp.com/avatars/452869400563810304/c90c7053eb97900669a5b20758a07a09.webp";
-
-const messages = [
-    {
-        id: 1,
-        received: true,
-        content: "Salut",
-        sendAt: "14:50",
-    },
-    {
-        id: 2,
-        received: false,
-        content: "Salut ba",
-        sendAt: "14:60",
-    },
-    {
-        id: 3,
-        received: true,
-        content: "Ce mai faci",
-        sendAt: "14:65",
-    },
-    {
-        id: 4,
-        received: false,
-        content: "Uite bine si io pa-icia",
-        sendAt: "15:50",
-    },
-    {
-        id: 5,
-        received: true,
-        content: "Hai Ciao",
-        sendAt: "18:20",
-    },
-];
-
 const Chat: React.FunctionComponent = () => {
     const { userData, activeChat, userFriendsData, socket } = React.useContext(AppContext);
     const obj = React.useContext(AppContext);
@@ -67,6 +31,7 @@ const Chat: React.FunctionComponent = () => {
     const friendData = userFriendsData.find(e => e._id === userData.friends.find(e => e.chatId === activeChat._id).friendId);
 
     return (
+        // <DesktopChatComponent 
         <div className="w-full h-full flex flex-col place-content-stretch">
             {/* Asta e containeru cu mesaje */}
             <div className="w-full flex-grow overflow-y-auto overflow-x-hidden">
