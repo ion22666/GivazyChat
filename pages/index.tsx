@@ -59,10 +59,8 @@ function HomePage() {
     }, []);
 
     React.useEffect(() => {
-        window.matchMedia("(max-aspect-ratio: 1/1)").onchange = e => {
-            console.log(e);
-            setIsMobile(e.matches);
-        };
+        setIsMobile(window.matchMedia("(max-aspect-ratio: 1/1)").matches);
+        window.matchMedia("(max-aspect-ratio: 1/1)").onchange = e => setIsMobile(e.matches);
     }, []);
 
     // fetch the api
