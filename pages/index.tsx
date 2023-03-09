@@ -118,7 +118,10 @@ function HomePage() {
             <div className="h-full w-full flex flex-row bg-black gap-2 flex-grow">
                 <div className="flex-grow bg-Gray3">{activeChat ? <Chat /> : <FriendsSection />}</div>
             </div>
-            <div className="w-full h-10 bg-white"></div>
+            
+            <div className="w-full h-10 bg-white">
+             
+            </div>
         </div>
     );
 

@@ -28,8 +28,9 @@ function LoginPage() {
 
         return true;
       }
-  
 
+      
+  
 
     const handleFormSubmit = async (event) => {
         event.preventDefault();
@@ -94,7 +95,7 @@ function LoginPage() {
                         
                         placeholder="Email"
                         id="email"
-                        className="w-full rounded-2xl mt-5 text-center"
+                        className="w-full rounded-lg mb-5 mt-5 text-center"
                         type="email"
                         name="email"
                         ref={emailRef}
@@ -107,7 +108,7 @@ function LoginPage() {
                     <input
                         placeholder="Password"
                         id="password"
-                        className="w-full rounded-br-2xl rounded-tl-2xl mb-5 mt-5 text-center"
+                        className="w-full rounded-lg mb-5 mt-2 text-center"
                         type="password"
                         name="password"
                         ref={passwordRef}
