@@ -100,28 +100,32 @@ function HomePage() {
     };
 
     const desktopReturn = (
-        <div className="w-full h-full flex flex-col">
-            <div className="h-full w-full flex flex-row bg-black gap-2 p-2 flex-grow">
-                <div className="w-14 bg-Gray1 rounded-lg">
+        <div className="flex h-full w-full flex-col">
+            <div className="flex  h-full w-full flex-grow flex-row gap-2 bg-black p-2">
+                <div className="w-14 rounded-lg bg-Gray1">
                     <FirstSection />
                 </div>
-                <div style={{ ...(isMobile ? { display: "none" } : {}) }} className="w-72 bg-Gray2 rounded-lg">
+                <div className="w-72 rounded-lg bg-Gray2">
                     <SecondSection />
                 </div>
-                <div className="flex-grow bg-Gray3 rounded-lg">{activeChat ? <Chat /> : <FriendsSection />}</div>
+                <div className="flex-grow rounded-lg bg-Gray3">{activeChat ? <Chat /> : <FriendsSection />}</div>
             </div>
         </div>
     );
 
     const mobileReturn = (
-        <div className="w-full h-full flex flex-col">
-            <div className="h-full w-full flex flex-row bg-black gap-2 flex-grow">
+        <div className="flex h-full w-full flex-col">
+            <div className="flex h-full w-full flex-grow flex-row gap-2 bg-black">
                 <div className="flex-grow bg-Gray3">{activeChat ? <Chat /> : <FriendsSection />}</div>
             </div>
+<<<<<<< HEAD
             
             <div className="w-full h-10 bg-white">
              
             </div>
+=======
+            <div className="h-10 w-full bg-white"></div>
+>>>>>>> 04c6e2c18deddd835a9bd0d79735590961d3e934
         </div>
     );
 
