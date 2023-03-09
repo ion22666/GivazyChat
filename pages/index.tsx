@@ -9,6 +9,11 @@ import SecondSection from "../components/SecondSection";
 
 let socket: Socket;
 
+interface View {
+    name: "chat" | "search" | "friends";
+    Component: React.FunctionComponent<any>;
+}
+
 interface AppContext {
     userData: global.UserData | undefined;
     setUserData: React.Dispatch<global.UserData>;
@@ -16,6 +21,8 @@ interface AppContext {
     setChats: React.Dispatch<global.Chat[]>;
     activeChat: global.Chat | undefined;
     setActiveChat: React.Dispatch<global.Chat>;
+    activeView: View | undefined;
+    setActiveView: React.Dispatch<View>;
     userFriendsData: global.UserData[] | undefined;
     setUserFriendsData: React.Dispatch<global.UserData[]>;
     forceReRenderChat: () => void;
@@ -40,11 +47,27 @@ const InitialAppContext: Partial<AppContext> = {
 
 export const AppContext = React.createContext<AppContext>(InitialAppContext as AppContext);
 
+const views: View[] = [
+    {
+        name: "chat",
+        Component: Chat,
+    },
+    {
+        name: "search",
+        Component: Chat,
+    },
+    {
+        name: "friends",
+        Component: FriendsSection,
+    },
+];
+
 function HomePage() {
     const [userData, setUserData] = React.useState<any>();
     const [userFriendsData, setUserFriendsData] = React.useState<any>();
     const [chats, setChats] = React.useState<any>();
     const [activeChat, setActiveChat] = React.useState<any>();
+    const [activeView, setActiveView] = React.useState<any>();
 
     const [isMobile, setIsMobile] = React.useState<any>(true);
 
@@ -93,11 +116,15 @@ function HomePage() {
         setChats,
         activeChat,
         setActiveChat,
+        activeView,
+        setActiveView,
         userFriendsData,
         setUserFriendsData,
         socket,
         isMobile,
     };
+
+    const ActiveViewComponent = views.find(v => (v.name = activeView)).Component;
 
     const desktopReturn = (
         <div className="flex h-full w-full flex-col">
@@ -108,14 +135,16 @@ function HomePage() {
                 <div className="w-72 rounded-lg bg-Gray2">
                     <SecondSection />
                 </div>
-                <div className="flex-grow rounded-lg bg-Gray3">{activeChat ? <Chat /> : <FriendsSection />}</div>
+                <div className="flex-grow rounded-lg bg-Gray3">
+                    <ActiveViewComponent />
+                </div>
             </div>
         </div>
     );
 
     const mobileReturn = (
         <div className="flex h-full w-full flex-col">
-            <div className="flex h-full w-full flex-grow flex-row gap-2 bg-black">
+            <div className="flex w-full flex-grow flex-row gap-2 bg-black">
                 <div className="flex-grow bg-Gray2">{activeChat ? <Chat /> : <FriendsSection />}</div>
             </div>
             <div className="h-10 w-full bg-white"></div>
