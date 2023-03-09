@@ -1,29 +1,30 @@
 import * as React from "react";
 
-import { AppContext } from "../pages";
+import { AppContext } from "../../pages";
+import SearchIcon from "../svg/Search";
+import SearchComponent from "../SearchComponent";
 
-const SecondSection: React.FunctionComponent = () => {
-    const { userData, userFriendsData, setUserFriendsData, chats, activeChat, setActiveChat, socket, isMobile } = React.useContext(AppContext);
+const OnlineFriends: React.FunctionComponent = props => {
+    const { userData, userFriendsData, chats, activeChat, setActiveChat,setUserFriendsData, socket } = React.useContext(AppContext);
 
     if (!userData || !userFriendsData || !chats) return <div>{"Loading..."}</div>;
 
+    const onlineFriends = userFriendsData.filter(e => e.isOnline);
+
     React.useEffect(() => {
-        socket.emit("my online friends");
-        socket.on("your online friends", (online_friends: { friendId: string; chatId: string }[]) => {
-            online_friends.forEach(({ friendId, chatId }) => {
-                const friendData = userFriendsData.find(e => e._id === friendId);
-                if (friendData) friendData.isOnline = true;
-            });
-            setUserFriendsData([...userFriendsData]);
-        });
-        return () => {
-            socket.off("your online friends");
-        };
-    }, []);
+        setOnScreenFriends([...userFriendsData.filter(e => e.isOnline)]);
+    }, [userFriendsData]);
+
+    const [onScreenFriends, setOnScreenFriends] = React.useState(onlineFriends);
+
+    
+
     return (
-        <div className="w-full h-full p-4 rounded-lg">
-            <div className="w-full text-xl text-stone-300 pb-4"> {"Direct Messages"} </div>
-            {userFriendsData.map(friendData => {
+        <div {...props} className="">
+            <SearchComponent<global.UserData> state={onlineFriends} setState={setOnScreenFriends} filter={(text, e) => e.username.toLowerCase().includes(text.toLowerCase())} />
+
+            <div>{`Online - ${onlineFriends.length}`}</div>
+            {onScreenFriends.map(friendData => {
                 const chatId = userData.friends.find(e => e.friendId === friendData._id).chatId;
                 const isActive = activeChat && activeChat._id === chatId;
                 return (
@@ -51,4 +52,4 @@ const SecondSection: React.FunctionComponent = () => {
     );
 };
 
-export default SecondSection;
+export default OnlineFriends;

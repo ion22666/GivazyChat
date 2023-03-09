@@ -47,14 +47,17 @@ AppendWebSockets(httpServer);
     {
         expressApp.use("/", express.static("public"));
         expressApp.use("/_next", nextHook);
-        expressApp.use("/login", nextHook);
-        expressApp.use("/register", nextHook);
+        expressApp.use("/__nextjs_original-stack-frame", nextHook);
 
         expressApp.use("/api/login", login_router);
         expressApp.use("/api/register", register_router);
 
         // Serve Next.js pages
-        !process.env.API_ONLY && expressApp.get("/", nextHook);
+        if (!process.env.API_ONLY) {
+            expressApp.get("/", nextHook);
+            expressApp.use("/login", nextHook);
+            expressApp.use("/register", nextHook);
+        }
     }
 
     // redirect to login if missing the cookie/jwt

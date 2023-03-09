@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 
-const socket = io({ path: "/chat.socket", autoConnect: false });
+const socket = io({ path: "/chat.socket", autoConnect: false, });
 
 function HomePage() {
     const [isConnected, setIsConnected] = useState(socket.connected);

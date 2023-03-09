@@ -14,9 +14,25 @@
 <body>
     <div id="time"></div>
     <button id="update">Update Time</button>
+    <input type="text" placeholder="Send a message">
+    <button id="send_message">Send Message</button>
+    <div id="messages"></div>
     <script>
         const timeDiv = document.querySelector("#time");
         const updateButton = document.querySelector("#update");
+        const input = document.querySelector("input");
+        const sendMessageButton = document.querySelector("#send_message");
+        const messagesDiv = document.querySelector("#messages");
+
+        const messages = {
+            list: [],
+            append(message_content) {
+                this.list.push(message_content);
+                const div = document.createElement("div");
+                div.textContent = message_content
+                messagesDiv.appendChild(div);
+            }
+        };
 
         const socket = io({
             autoConnect: false,
@@ -24,17 +40,26 @@
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
         });
-        socket.on("connect_error", (err) => {
-            console.log(err.message); // prints the message associated with the error
-        });
-        updateButton.onclick = () => socket.emit("ping", "HELLO");
+        socket.on("your online friends", (a) => console.log(a))
+        socket.emit("my online friends");
 
         socket.on("pong", () => timeDiv.innerHTML = new Date().toISOString());
 
-        socket.on("update response", (messages) => {
-            console.log(messages);
-            setMessages(messages);
+        socket.on("push message", (message, chat_id) => {
+            console.log(message, chat_id);
+            messages.append(message.content);
         });
+
+        sendMessageButton.onclick = () => {
+            console.log(input.value);
+            socket.emit("send message", { content: input.value }, "63fd1c57a3fd6b036475322c")
+        }
+
+        updateButton.onclick = () => socket.emit("ping", "HELLO");
+
+
+
+
         socket.connect();
     </script>
 </body>

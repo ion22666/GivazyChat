@@ -67,6 +67,11 @@ input:focus-visible {
     outline: 0;
 }
 
+*{
+    font-family: "Whyte-Book";
+    box-sizing: border-box;
+    position: relative;
+}
 .animate-loading-dot {
     animation: loading-dots 1s ease-in-out infinite;
 }

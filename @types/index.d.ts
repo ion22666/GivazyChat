@@ -17,6 +17,7 @@ declare namespace global {
         username?: string;
         password?: string;
         picture?: string;
+        friends: { friendId: string; chatId: string }[];
         oauth?: {
             google?: GoogleUserInfo;
             microsoft?: {
@@ -26,33 +27,38 @@ declare namespace global {
         };
 
         createJWT(): string;
+        getChatsIds(): Promise<string[]>;
     }
 
-    interface UserData extends User {}
-
-    interface Session {
-        userId: string;
-        createdAt: number;
-        refreshLifetime(): Promomise<void>;
+    interface UserData extends User {
+        isOnline?: boolean;
     }
+
     interface JWT {
         sub: string;
         exp?: number;
     }
 
+    interface PartialMessage {
+        content: string;
+    }
+
     interface Message {
+        sender: string;
         sendAt: number;
         content: string;
     }
     interface Chat {
+        _id: string;
         participants: string[] | Types.ObjectId[];
         messages: Message[];
+        pushMessage(message: Message): Promise<void>;
     }
 }
 
 declare namespace Express {
     interface Request {
-        user: global.User & QueryWithHelpers;
+        user: global.User;
     }
 }
 

@@ -1,29 +1,21 @@
 import * as React from "react";
 
-import { AppContext } from "../pages";
+import { AppContext } from "../../pages";
+import SearchComponent from "../SearchComponent";
 
-const SecondSection: React.FunctionComponent = () => {
-    const { userData, userFriendsData, setUserFriendsData, chats, activeChat, setActiveChat, socket, isMobile } = React.useContext(AppContext);
+const AllFriends: React.FunctionComponent = (props) => {
+    const { userData, userFriendsData, chats, activeChat, setActiveChat } = React.useContext(AppContext);
 
     if (!userData || !userFriendsData || !chats) return <div>{"Loading..."}</div>;
 
-    React.useEffect(() => {
-        socket.emit("my online friends");
-        socket.on("your online friends", (online_friends: { friendId: string; chatId: string }[]) => {
-            online_friends.forEach(({ friendId, chatId }) => {
-                const friendData = userFriendsData.find(e => e._id === friendId);
-                if (friendData) friendData.isOnline = true;
-            });
-            setUserFriendsData([...userFriendsData]);
-        });
-        return () => {
-            socket.off("your online friends");
-        };
-    }, []);
+    const [onScreenFriends, setOnScreenFriends] = React.useState(userFriendsData);
+
     return (
-        <div className="w-full h-full p-4 rounded-lg">
-            <div className="w-full text-xl text-stone-300 pb-4"> {"Direct Messages"} </div>
-            {userFriendsData.map(friendData => {
+        <div {...props} className="">
+            <SearchComponent<global.UserData> state={userFriendsData} setState={setOnScreenFriends} filter={(text, e) => e.username.toLowerCase().includes(text.toLowerCase())} />
+
+            <div>{`Total - ${userFriendsData.length}`}</div>
+            {onScreenFriends.map(friendData => {
                 const chatId = userData.friends.find(e => e.friendId === friendData._id).chatId;
                 const isActive = activeChat && activeChat._id === chatId;
                 return (
@@ -51,4 +43,4 @@ const SecondSection: React.FunctionComponent = () => {
     );
 };
 
-export default SecondSection;
+export default AllFriends;

@@ -46,3 +46,5 @@ function MyApp({ Component, pageProps }) {
 }
 
 export default MyApp;
+
+export const VerdeColor = "rgb(22, 224, 107)";

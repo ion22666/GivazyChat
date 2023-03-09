@@ -26,9 +26,13 @@ const ChatSchema = new mongoose.Schema({
         {
             sendAt: Number,
             content: String,
+            sender: mongoose.Schema.Types.ObjectId,
         },
     ],
 });
+ChatSchema.methods.pushMessage = async function (message) {
+    await this.update({ $push: { messages: message } });
+};
 const Chat = (mongoose.models.Chat || mongoose.model("Chat", ChatSchema));
 
 dotenv.config();
@@ -38,6 +42,7 @@ const UserSchema = new mongoose.Schema({
     username: { type: String },
     password: { type: String },
     picture: { type: String },
+    friends: [{ friendId: mongoose.Schema.Types.ObjectId, chatId: mongoose.Schema.Types.ObjectId }],
     oauth: {
         google: {
             id: { type: String },
@@ -55,6 +60,9 @@ const UserSchema = new mongoose.Schema({
 UserSchema.methods.createJWT = function () {
     return jwt.sign({ sub: this._id }, process.env.JWT_PRIVETE_KEY || "givazy", { algorithm: "HS256" });
 };
+UserSchema.methods.getChatsIds = async function () {
+    return (await Chat.find({ participants: this._id }, { _id: 1 })).map(e => e._id.toString());
+};
 const User = (mongoose.models.User || mongoose.model("User", UserSchema));
 
 var getUserFromToken = async (token) => {
@@ -69,6 +77,14 @@ var getUserFromToken = async (token) => {
     return user;
 };
 
+const messageFactory = function (partial_message, sender) {
+    return {
+        sender: sender._id,
+        sendAt: Date.now(),
+        content: partial_message.content,
+    };
+};
+
 const AppendWebSockets = (httpServer) => {
     const io = new Server(httpServer);
     io.use(async (socket, next) => {
@@ -81,12 +97,29 @@ const AppendWebSockets = (httpServer) => {
             return next(new Error("Authentication error"));
         }
     });
-    io.on("connection", socket => {
-        console.log("new ws connection ", socket.id);
-        socket.emit("pong");
-        socket.on("ping", () => socket.emit("pong"));
-        socket.on("update request", async () => {
-            socket.emit("update response", (await Chat.find({}))[0].messages);
+    io.on("connection", async (socket) => {
+        // room = chat/conversation id
+        // subscribe the user to all his conversations/chat rooms
+        // 1. get user's conversations id's
+        // 2. join the user to each conversation room
+        const rooms = await socket.user.getChatsIds();
+        rooms.forEach(room => socket.join(room));
+        socket.join(socket.user._id.toString());
+        console.log("new ws connection with: ", socket.user.username);
+        // when users sends a message to a specific room/chat
+        socket.on("send message", async (partial_message, room_id) => {
+            const chat = await Chat.findOne({ _id: room_id });
+            // fulfil the message properties
+            const message = messageFactory(partial_message, socket.user);
+            // save the message to the database
+            await chat.pushMessage(message);
+            // push event to all participants in that room, except the sender
+            io.to(room_id).emit("push message", message, room_id);
+        });
+        socket.on("my online friends", () => {
+            const onlineFriends = [];
+            socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e));
+            return socket.emit("your online friends", onlineFriends);
         });
     });
 };
@@ -279,11 +312,39 @@ const delete_user = async (req, res) => {
     }
 };
 
-dotenv.config();
-const get_user_data = async (req, res) => res.json({ data: req.user });
+const get_chats = async (req, res) => {
+    try {
+        res.json({ data: await Chat.find({ participants: req.user._id }) });
+    }
+    catch (e) {
+        res.status(500).json({ error: e });
+    }
+};
+
+const get_friends = async (req, res) => {
+    try {
+        const users = await User.find({ _id: { $in: req.user.friends.map(f => f.friendId) } });
+        users.forEach(user => {
+            if (!user.picture)
+                user.picture = user.oauth.google.picture || "img/blank_profile.png";
+        });
+        return res.json({ data: users });
+    }
+    catch (e) {
+        res.status(500).json({ error: e });
+    }
+};
 
 dotenv.config();
-var user_router = express.Router().get("/data", get_user_data).get("/delete", delete_user);
+const get_user_data = async (req, res) => {
+    var _a, _b;
+    if (!req.user.picture)
+        req.user.picture = ((_b = (_a = req.user.oauth) === null || _a === void 0 ? void 0 : _a.google) === null || _b === void 0 ? void 0 : _b.picture) || "img/blank_profile.png";
+    res.json({ data: req.user });
+};
+
+dotenv.config();
+var user_router = express.Router().get("/data", get_user_data).get("/friends", get_friends).get("/chats", get_chats).get("/delete", delete_user);
 
 dotenv.config();
 const dev = process.env.NODE_ENV !== "production";
@@ -312,12 +373,15 @@ AppendWebSockets(httpServer);
     {
         expressApp.use("/", express.static("public"));
         expressApp.use("/_next", nextHook);
-        expressApp.use("/login", nextHook);
-        expressApp.use("/register", nextHook);
+        expressApp.use("/__nextjs_original-stack-frame", nextHook);
         expressApp.use("/api/login", login_router);
         expressApp.use("/api/register", register_router);
         // Serve Next.js pages
-        !process.env.API_ONLY && expressApp.get("/", nextHook);
+        if (!process.env.API_ONLY) {
+            expressApp.get("/", nextHook);
+            expressApp.use("/login", nextHook);
+            expressApp.use("/register", nextHook);
+        }
     }
     // redirect to login if missing the cookie/jwt
     expressApp.use("", auth_middleware);
