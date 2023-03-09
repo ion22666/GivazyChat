@@ -21,8 +21,8 @@ interface AppContext {
     setChats: React.Dispatch<global.Chat[]>;
     activeChat: global.Chat | undefined;
     setActiveChat: React.Dispatch<global.Chat>;
-    activeView: View | undefined;
-    setActiveView: React.Dispatch<View>;
+    activeView: View["name"] | undefined;
+    setActiveView: React.Dispatch<View["name"]>;
     userFriendsData: global.UserData[] | undefined;
     setUserFriendsData: React.Dispatch<global.UserData[]>;
     forceReRenderChat: () => void;
