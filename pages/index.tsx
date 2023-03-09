@@ -116,16 +116,9 @@ function HomePage() {
     const mobileReturn = (
         <div className="flex h-full w-full flex-col">
             <div className="flex h-full w-full flex-grow flex-row gap-2 bg-black">
-                <div className="flex-grow bg-Gray3">{activeChat ? <Chat /> : <FriendsSection />}</div>
+                <div className="flex-grow bg-Gray2">{activeChat ? <Chat /> : <FriendsSection />}</div>
             </div>
-<<<<<<< HEAD
-            
-            <div className="w-full h-10 bg-white">
-             
-            </div>
-=======
             <div className="h-10 w-full bg-white"></div>
->>>>>>> 04c6e2c18deddd835a9bd0d79735590961d3e934
         </div>
     );
 
