@@ -390,13 +390,53 @@ const get_user_data = async (req, res) => {
 };
 
 dotenv.config();
+const removeFriend = async (req, res) => {
+    try {
+        const friendId = req.body.friendId;
+        if (!req.user.pedingFriends.map(e => e.friendId).includes(friendId))
+            throw new Error(friendId + " is not in your friends list");
+        const response = await User.updateOne({ _id: req.user._id }, { $pull: { friends: { friendId: friendId } } });
+        if (response.modifiedCount === 0)
+            throw new Error("0 documents where updated");
+        res.sendStatus(200);
+    }
+    catch (e) {
+        res.status(500).json({ error: e });
+    }
+};
+
+dotenv.config();
 var user_router = express
     .Router()
     .get("/data", get_user_data)
     .get("/friends", get_friends)
     .get("/pedingFriends", getPedingFriends)
     .get("/chats", get_chats)
-    .get("/delete", delete_user);
+    .get("/delete", delete_user)
+    .post("/removeFriend", removeFriend);
+
+const searchUsers = async (req, res) => {
+    try {
+        const searchInput = req.body.searchInput;
+        const usersData = await User.find({
+            $or: [
+                {
+                    username: new RegExp(searchInput, "i"),
+                },
+                {
+                    _id: searchInput.slice(0, 12).padEnd(12, "0"),
+                },
+            ],
+        });
+        return res.json({ data: usersData });
+    }
+    catch (e) {
+        return res.json({ error: e });
+    }
+};
+
+dotenv.config();
+var searchRouter = express.Router().get("/users", searchUsers);
 
 dotenv.config();
 const dev = process.env.NODE_ENV !== "production";
@@ -441,6 +481,7 @@ AppendWebSockets(httpServer);
     {
         expressApp.use("/api/test-token", (req, res) => res.sendStatus(200));
         expressApp.use("/api/user", user_router);
+        expressApp.use("/api/search", searchRouter);
     }
     httpServer.listen(port, hostname, () => {
         console.log(`>>> Ready on http://${hostname}:${port}`);

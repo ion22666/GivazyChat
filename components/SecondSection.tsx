@@ -1,12 +1,13 @@
 import * as React from "react";
 
 import { AppContext } from "../pages";
+import { VerdeColor } from "../pages/_app";
 
 const SecondSection: React.FunctionComponent = () => {
-    const { userData, userFriendsData, setUserFriendsData, chats, activeChat, setActiveChat, socket, isMobile } = React.useContext(AppContext);
+    const { userData, userFriendsData, setUserFriendsData, chats, activeChat, setActiveView, setActiveChat, socket, isMobile } = React.useContext(AppContext);
 
     const isReady = userData && userFriendsData && chats;
-    
+
     React.useEffect(() => {
         if (!isReady) return;
         socket.emit("my online friends");
@@ -24,30 +25,33 @@ const SecondSection: React.FunctionComponent = () => {
 
     if (!isReady) return <div>{"Loading..."}</div>;
 
+    function goToChat(id: string) {
+        setActiveView("chat");
+        setActiveChat(chats.find(e => e._id === id));
+    }
+
     return (
-        <div className="w-full h-full p-4 rounded-lg">
-            <div className="w-full text-xl text-stone-300 pb-4"> {"Direct Messages"} </div>
+        <div className="h-full w-full rounded-lg p-4">
+            <div className="w-full pb-4 text-xl text-stone-300"> {"Direct Messages"} </div>
             {userFriendsData.map(friendData => {
                 const chatId = userData.friends.find(e => e.friendId === friendData._id).chatId;
                 const isActive = activeChat && activeChat._id === chatId;
                 return (
                     <div
                         key={friendData._id}
-                        onClick={() => setActiveChat(chats.find(e => e._id === chatId))}
-                        className={
-                            (isActive ? "" : "") +
-                            " " +
-                            "h-10 flex flex-row w-full items-center gap-4 hover:gap-2 duration-100 ease-linear hover:bg-white hover:bg-opacity-10 rounded-md p-1 cursor-pointer"
-                        }
+                        onClick={() => goToChat(chatId)}
+                        className="flex h-10 w-full cursor-pointer flex-row items-center gap-4 rounded-md p-1 duration-100 ease-linear hover:gap-2 hover:bg-white hover:bg-opacity-10"
                     >
-                        <div className="h-full aspect-square">
-                            <img src={friendData.picture} referrerPolicy="no-referrer" className="h-full aspect-square rounded-full" />
+                        <div className="aspect-square h-full">
+                            <img src={friendData.picture} referrerPolicy="no-referrer" className="aspect-square h-full rounded-full" />
                             <div
-                                style={{ backgroundColor: friendData.isOnline ? "rgb(89 226 84)" : "#444" }}
-                                className="absolute bottom-0 right-0 h-2 aspect-square rounded-full translate-x-1/4 translate-y-1/4 border-4 border-Gray2 box-content"
+                                style={{ backgroundColor: friendData.isOnline ? VerdeColor : "gray" }}
+                                className="absolute bottom-0 right-0 box-content aspect-square h-2 translate-x-1/4 translate-y-1/4 rounded-full border-4 border-Gray2"
                             ></div>
                         </div>
-                        <div className={(activeChat && activeChat._id === chatId ? "text-Verde" : "text-white") + " " + "text-lg"}>{friendData.username}</div>
+                        <div className="text-lg" style={{ color: isActive ? VerdeColor : "white" }}>
+                            {friendData.username}
+                        </div>
                     </div>
                 );
             })}

@@ -9,7 +9,7 @@ import FriendIcon from "./svg/Friend";
 
 type Views = "Online" | "All" | "Padding";
 
-const views: { name: Views; Component: React.FunctionComponent<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>> }[] = [
+const friendViews: { name: Views; Component: React.FunctionComponent<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>> }[] = [
     {
         name: "Online",
         Component: OnlineFriends,
@@ -32,40 +32,39 @@ const FriendsSection: React.FunctionComponent = () => {
 
     if (!isReady) return <div>{"Loading..."}</div>;
 
+    const ActiveComponent = friendViews.find(v => v.name === activeView).Component;
+
     return (
-        <div className="w-full h-full flex flex-col gap-2">
+        <div className="flex h-full w-full flex-col gap-2">
             <div
                 style={{ display: isMobile ? "none" : "flex" }}
-                className="h-16 w-full p-2 bg-white bg-opacity-10 rounded-lg flex flex-row gap-2 items-center [&>*]:text-2xl [&>*]:mx-1  text-white [&>*]:font-Whyte-Book"
+                className="flex h-16 w-full flex-row items-center gap-2 rounded-lg bg-white bg-opacity-10 p-2 text-white [&>*]:mx-1  [&>*]:font-Whyte-Book [&>*]:text-2xl"
             >
-                <div className="flex flex-wrow gap-1 items-center border-r-2 border-white border-opacity-40 cursor-default">
+                <div className="flex-wrow flex cursor-default items-center gap-1 border-r-2 border-white border-opacity-40">
                     <span>
-                        <FriendIcon className="h-6 aspect-square" />
+                        <FriendIcon className="aspect-square h-6" />
                     </span>
-                    <span className="font-Whyte-Medium pr-2">{"Friends"}</span>
+                    <span className="pr-2 font-Whyte-Medium">{"Friends"}</span>
                 </div>
 
-                {views.map(({ name }) => {
+                {friendViews.map(({ name }) => {
                     return (
                         <div
                             onClick={() => setActiveView(name)}
                             key={name}
-                            className="hover:bg-white hover:bg-opacity-10 cursor-pointer duration-100 ease-linear rounded-lg px-1"
+                            className="cursor-pointer rounded-lg px-1 duration-100 ease-linear hover:bg-white hover:bg-opacity-10"
                             style={{ color: activeView === name ? VerdeColor : "white" }}
                         >
                             {name}
                         </div>
                     );
                 })}
-                <div className="bg-Verde cursor-pointer whitespace-nowrap bg-opacity-70 rounded-lg px-2  hover:scale-95 active:scale-90 hover:bg-opacity-100 duration-100 ease-linear">
+                <div className="cursor-pointer whitespace-nowrap rounded-lg bg-Verde bg-opacity-70 px-2  duration-100 ease-linear hover:scale-95 hover:bg-opacity-100 active:scale-90">
                     {"Add Friend"}
                 </div>
             </div>
-            <div className="w-full flex-grow rounded-lg">
-                {views.map(({ name, Component }) => {
-                    const display: React.CSSProperties = activeView !== name ? { display: "none" } : {};
-                    return <Component key={name} style={{ height: "100%", width: "100%", borderRadius: "0.5rem", padding: "1rem", ...display }} />;
-                })}
+            <div className="w-full flex-grow rounded-lg p-2">
+                <ActiveComponent />
             </div>
         </div>
     );

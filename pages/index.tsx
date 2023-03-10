@@ -26,7 +26,7 @@ interface AppContext {
     userFriendsData: global.UserData[] | undefined;
     setUserFriendsData: React.Dispatch<global.UserData[]>;
     forceReRenderChat: () => void;
-
+    removeFriend: (friendId: string) => Promise<void>;
     socket: Socket;
     isMobile: boolean;
 }
@@ -41,6 +41,15 @@ const InitialAppContext: Partial<AppContext> = {
         this.chats[index] = chatClone;
         // 4. trigger the re-render
         this.setActiveChat(chatClone);
+    },
+    async removeFriend(this: AppContext, friendId: string) {
+        const response = await window.request("/api/user/removeFriend", { method: "POST", body: JSON.stringify({ friendId }) });
+
+        if (!response.ok) {
+            return alert(response.statusText);
+        }
+        const friendDataIndex = this.userFriendsData.findIndex(e => e._id === friendId);
+        this.setUserFriendsData(this.userFriendsData.splice(friendDataIndex));
     },
     socket,
 };
@@ -124,7 +133,7 @@ function HomePage() {
         isMobile,
     };
 
-    const ActiveViewComponent = views.find(v => (v.name === activeView)).Component;
+    const ActiveViewComponent = views.find(v => v.name === activeView).Component;
 
     const desktopReturn = (
         <div className="flex h-full w-full flex-col">
