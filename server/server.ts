@@ -12,6 +12,7 @@ import login_router from "./routers/loginRouter";
 import register_router from "./routers/registerRouter";
 import user_router from "./routers/userRouter";
 import { MongoConnectionPromise } from "./database/mongodb";
+import searchRouter from "./routers/searchRouter";
 
 dotenv.config();
 
@@ -67,6 +68,7 @@ AppendWebSockets(httpServer);
     {
         expressApp.use("/api/test-token", (req, res) => res.sendStatus(200));
         expressApp.use("/api/user", user_router);
+        expressApp.use("/api/search", searchRouter);
     }
 
     httpServer.listen(port, hostname, () => {
