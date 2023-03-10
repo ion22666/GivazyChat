@@ -15,6 +15,7 @@ module.exports = {
                 ["Black-Blue"]: "#01212d",
                 ["Verde"]: "rgb(22, 224, 107)",
                 ["Night"]: "#0C090A",
+                ["Crimson"]:"#c22d2d",
                 ["Gray1"]: "#353535",
                 ["Gray2"]: "#272727",
                 ["Gray3"]: "#1E1E1E",
