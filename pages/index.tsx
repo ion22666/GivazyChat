@@ -5,6 +5,7 @@ import Chat from "../components/Chat";
 
 import FirstSection from "../components/FirstSection";
 import FriendsSection from "../components/FriendsSection";
+import SearchViewComponent from "../components/SearchViewComponent";
 import SecondSection from "../components/SecondSection";
 
 let socket: Socket;
@@ -43,7 +44,11 @@ const InitialAppContext: Partial<AppContext> = {
         this.setActiveChat(chatClone);
     },
     async removeFriend(this: AppContext, friendId: string) {
-        const response = await window.request("/api/user/removeFriend", { method: "POST", body: JSON.stringify({ friendId }) });
+        const response = await window.request("/api/user/removeFriend", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ friendId }),
+        });
 
         if (!response.ok) {
             return alert(response.statusText);
@@ -63,7 +68,7 @@ const views: View[] = [
     },
     {
         name: "search",
-        Component: Chat,
+        Component: SearchViewComponent,
     },
     {
         name: "friends",
@@ -154,7 +159,9 @@ function HomePage() {
     const mobileReturn = (
         <div className="flex h-full w-full flex-col">
             <div className="flex w-full flex-grow flex-row gap-2 bg-black">
-                <div className="flex-grow bg-Gray2">{activeChat ? <Chat /> : <FriendsSection />}</div>
+                <div className="flex-grow bg-Gray2">
+                    <ActiveViewComponent />
+                </div>
             </div>
             <div className="h-10 w-full bg-white"></div>
         </div>
