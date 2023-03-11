@@ -2,14 +2,14 @@ import * as React from "react";
 
 import { AppContext } from "../pages";
 import { VerdeColor } from "../pages/_app";
-import AllFriends from "./friendsViews/All";
-import OnlineFriends from "./friendsViews/Online";
-import PaddingFriends from "./friendsViews/Padding";
+import AllFriends from "./friendsViews/AllFriendsSubSection";
+import OnlineFriends from "./friendsViews/OnlineFriendsSubSection";
+import PaddingFriends from "./friendsViews/PedingFriendsSubSection";
 import FriendIcon from "./svg/Friend";
 
 type Views = "Online" | "All" | "Padding";
 
-const friendViews: { name: Views; Component: React.FunctionComponent<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>> }[] = [
+const friendSubSection: { name: Views; Component: React.FunctionComponent<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>> }[] = [
     {
         name: "Online",
         Component: OnlineFriends,
@@ -32,7 +32,7 @@ const FriendsSection: React.FunctionComponent = () => {
 
     if (!isReady) return <div>{"Loading..."}</div>;
 
-    const ActiveComponent = friendViews.find(v => v.name === activeView).Component;
+    const ActiveFriendsSubSection = friendSubSection.find(v => v.name === activeView).Component;
 
     return (
         <div className="flex h-full w-full flex-col gap-2">
@@ -47,7 +47,7 @@ const FriendsSection: React.FunctionComponent = () => {
                     <span className="pr-2 font-Whyte-Medium">{"Friends"}</span>
                 </div>
 
-                {friendViews.map(({ name }) => {
+                {friendSubSection.map(({ name }) => {
                     return (
                         <div
                             onClick={() => setActiveView(name)}
@@ -64,7 +64,7 @@ const FriendsSection: React.FunctionComponent = () => {
                 </div>
             </div>
             <div className="w-full flex-grow rounded-lg p-2">
-                <ActiveComponent />
+                <ActiveFriendsSubSection />
             </div>
         </div>
     );
