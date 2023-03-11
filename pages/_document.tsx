@@ -2,7 +2,7 @@ import { Html, Head, Main, NextScript } from "next/document";
 
 export default function Document() {
     return (
-        <Html lang="en" className="w-full h-full overflow-hidden">
+        <Html lang="en" className="h-full w-full overflow-hidden">
             <Head>
                 <style>{`
                     #__next{
@@ -14,8 +14,9 @@ export default function Document() {
                 <script src="scripts/request-helper.js"></script>
                 <meta name="client_id" content={process.env.client_id} />
                 <meta name="domain" content={process.env.domain} />
+                <meta httpEquiv="Content-Security-Policy" content="img-src 'self' https://lh3.googleusercontent.com https://picsum.photos https://fastly.picsum.photos"></meta>
             </Head>
-            <body className="w-full h-full overflow-hidden">
+            <body className="h-full w-full overflow-hidden">
                 <Main />
                 <NextScript />
             </body>

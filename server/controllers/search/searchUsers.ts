@@ -4,7 +4,7 @@ import { User } from "../../models/userModel";
 
 const searchUsers: Handler = async (req, res) => {
     try {
-        const searchInput: string = req.body.searchInput;
+        const searchInput: string = req.query.input.toString();
 
         const usersData = await User.find({
             $or: [

@@ -393,7 +393,8 @@ dotenv.config();
 const removeFriend = async (req, res) => {
     try {
         const friendId = req.body.friendId;
-        if (!req.user.pedingFriends.map(e => e.friendId).includes(friendId))
+        console.log(req.body);
+        if (!req.user.friends.map(e => e.friendId.toString()).includes(friendId))
             throw new Error(friendId + " is not in your friends list");
         const response = await User.updateOne({ _id: req.user._id }, { $pull: { friends: { friendId: friendId } } });
         if (response.modifiedCount === 0)
@@ -401,6 +402,7 @@ const removeFriend = async (req, res) => {
         res.sendStatus(200);
     }
     catch (e) {
+        console.log(e);
         res.status(500).json({ error: e });
     }
 };
@@ -417,7 +419,7 @@ var user_router = express
 
 const searchUsers = async (req, res) => {
     try {
-        const searchInput = req.body.searchInput;
+        const searchInput = req.query.input.toString();
         const usersData = await User.find({
             $or: [
                 {
