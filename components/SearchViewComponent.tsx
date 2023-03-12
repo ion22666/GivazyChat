@@ -105,7 +105,63 @@ function SearchViewComponent() {
 
     );
 
-    const mobileReturn = <div></div>;
+    const mobileReturn = (
+
+        <div className="flex h-full w-full flex-col">
+            {/* search component */}
+            <div className="flex w-full justify-center bg-Verde bg-opacity-75 py-4">
+                <div style={{ minWidth: "90%" }} className="flex h-12 flex-row items-center gap-1 rounded-md bg-Gray2 px-2 py-1">
+                    <input
+                        onChange={e => activeSearchCategory.onInputChange(e)}
+                        className="h-full flex-grow bg-transparent font-Whyte-Medium text-xl text-Verde placeholder:font-Whyte-Italic"
+                        type="text"
+                        placeholder="Search"
+                    />
+                    <div className="h-full p-1 duration-100  ease-linear hover:p-2">
+                        <SearchIcon className="h-full text-white active:text-Verde" />
+                    </div>
+                </div>
+            </div>
+            
+            {/* search category chooser component */}
+            <div className="flex w-full gap-8 rounded-b-lg bg-Gray1 bg-opacity-50 p-4">
+                {searchCategories.map(categoty => {
+                    const isActive = activeSearchCategory.name === categoty.name;
+                    const IconToRender = isActive ? categoty.ActiveIcon : categoty.InactiveIcon;
+                    return (
+                        <div
+                            key={categoty.name}
+                            onClick={() => setActiveSearchCategory({ ...categoty })}
+                            className={
+                                "flex flex-grow cursor-pointer items-center justify-center gap-2 rounded-lg p-4" +
+                                " " +
+                                "[&>*]:duration-100 [&>*]:ease-linear [&>*]:hover:scale-110" +
+                                " " +
+                                (isActive ? "pointer-events-none bg-Verde text-black" : "bg-white bg-opacity-10 text-white hover:bg-Verde hover:bg-opacity-25 hover:text-Verde")
+                            }
+                        >
+                            <IconToRender className="h-5" />
+                            <div className={"font-Whyte-HeavyItalic text-xl tracking-widest"}>{categoty.name}</div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            {/* containerul cu rezultatele gasite (users sau groups) */}
+            
+            <div className="w-full flex-grow gap-4 overflow-y-auto rounded-lg bg-white bg-opacity-5 p-4 mt-2">
+                {activeSearchCategory.rowsData.map((data, index) => (
+                    <ActiveRowBuilder key={index} rowData={data} />
+                ))}
+            </div>
+            
+        </div>
+
+
+
+
+
+    );
 
     return isMobile ? mobileReturn : desktopReturn;
 }

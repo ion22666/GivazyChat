@@ -7,6 +7,7 @@ import FirstSection from "../components/FirstSection";
 import FriendsSection from "../components/FriendsSection";
 import SearchViewComponent from "../components/SearchViewComponent";
 import SecondSection from "../components/SecondSection";
+import MobileNavbar from "../components/MobileNavbar";
 
 let socket: Socket;
 
@@ -30,6 +31,7 @@ interface AppContext {
     removeFriend: (friendId: string) => Promise<void>;
     socket: Socket;
     isMobile: boolean;
+    
 }
 
 const InitialAppContext: Partial<AppContext> = {
@@ -136,6 +138,7 @@ function HomePage() {
         setUserFriendsData,
         socket,
         isMobile,
+        
     };
 
     const ActiveViewComponent = views.find(v => v.name === activeView).Component;
@@ -163,7 +166,9 @@ function HomePage() {
                     <ActiveViewComponent />
                 </div>
             </div>
-            <div className="h-10 w-full bg-white"></div>
+            <div className="h-10 w-full bg-white">
+                <MobileNavbar/>
+            </div>
         </div>
     );
 
