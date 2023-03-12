@@ -53,10 +53,10 @@ function SearchViewComponent() {
     const ActiveRowBuilder = activeSearchCategory.RowBuilderComponent;
 
     const desktopReturn = (
-        <div className="flex h-full w-full flex-col gap-4 rounded-lg p-4">
+        <div className="flex h-full w-full flex-col rounded-md px-2">
             {/* search component */}
-            <div className="flex w-full justify-center rounded-lg bg-Verde bg-opacity-75 py-8">
-                <div style={{ minWidth: "50%" }} className="flex h-12 flex-row items-center gap-1 rounded-md bg-black px-2 py-1">
+            <div className="flex w-full justify-center rounded-t-lg bg-Verde bg-opacity-75 py-4">
+                <div style={{ minWidth: "90%" }} className="flex h-12 flex-row items-center gap-1 rounded-md bg-Gray2 px-2 py-1">
                     <input
                         onChange={e => activeSearchCategory.onInputChange(e)}
                         className="h-full flex-grow bg-transparent font-Whyte-Medium text-xl text-Verde placeholder:font-Whyte-Italic"
@@ -68,8 +68,9 @@ function SearchViewComponent() {
                     </div>
                 </div>
             </div>
+            
             {/* search category chooser component */}
-            <div className="flex w-full gap-4 rounded-lg bg-black bg-opacity-50 p-4">
+            <div className="flex w-full gap-8 rounded-b-lg bg-Gray1 bg-opacity-50 p-4">
                 {searchCategories.map(categoty => {
                     const isActive = activeSearchCategory.name === categoty.name;
                     const IconToRender = isActive ? categoty.ActiveIcon : categoty.InactiveIcon;
@@ -93,13 +94,17 @@ function SearchViewComponent() {
             </div>
 
             {/* containerul cu rezultatele gasite (users sau groups) */}
+            <br />
             <div className="w-full flex-grow gap-4 overflow-y-auto rounded-lg bg-white bg-opacity-5 p-4">
                 {activeSearchCategory.rowsData.map((data, index) => (
                     <ActiveRowBuilder key={index} rowData={data} />
                 ))}
             </div>
+            
         </div>
+
     );
+
     const mobileReturn = <div></div>;
 
     return isMobile ? mobileReturn : desktopReturn;

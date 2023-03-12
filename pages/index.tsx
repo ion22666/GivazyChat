@@ -142,14 +142,14 @@ function HomePage() {
 
     const desktopReturn = (
         <div className="flex h-full w-full flex-col">
-            <div className="flex  h-full w-full flex-grow flex-row gap-2 bg-black p-2">
-                <div className="w-14 rounded-lg bg-Gray1">
+            <div className="flex  h-full w-full flex-grow flex-row gap-2 bg-Gray3 p-2">
+                <div className="w-12 rounded-lg bg-Gray1">
                     <FirstSection />
                 </div>
-                <div className="w-72 rounded-lg bg-Gray2">
+                <div className="w-60 rounded-lg bg-Gray2">
                     <SecondSection />
                 </div>
-                <div className="flex-grow rounded-lg bg-Gray3">
+                <div className="flex-grow rounded-lg bg-Gray3 p-2 ">
                     <ActiveViewComponent />
                 </div>
             </div>
