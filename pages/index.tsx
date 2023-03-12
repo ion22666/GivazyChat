@@ -158,12 +158,10 @@ function HomePage() {
 
     const mobileReturn = (
         <div className="flex h-full w-full flex-col">
-            <div className="flex w-full flex-grow flex-row gap-2 bg-black">
-                <div className="flex-grow bg-Gray2">
-                    <ActiveViewComponent />
-                </div>
+            <div className="h-full overflow-auto bg-Gray2">
+                <ActiveViewComponent />
             </div>
-            <div className="h-10 w-full bg-white"></div>
+            <div className="h-14 w-full bg-white"></div>
         </div>
     );
 

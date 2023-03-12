@@ -46,9 +46,9 @@ const Chat: React.FunctionComponent = () => {
 
     return (
         // <DesktopChatComponent
-        <div className="flex h-full w-full flex-col place-content-stretch">
+        <div className="flex h-full w-full flex-col">
             {/* Asta e containeru cu mesaje */}
-            <div className="w-full flex-grow overflow-y-auto overflow-x-hidden">
+            <div className="h-full w-full overflow-y-auto overflow-x-hidden">
                 {activeChat.messages.map(message => (
                     <Message senderData={message.sender === userData._id ? userData : friendData} message={message} />
                 ))}
