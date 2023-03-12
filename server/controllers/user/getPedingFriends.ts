@@ -3,7 +3,7 @@ import { User } from "../../models/userModel";
 
 export const getPedingFriends: Handler = async (req, res) => {
     try {
-        const users = await User.find({ _id: { $in: req.user.pedingFriends.map(f => f.friendId) } });
+        const users = await User.find({ _id: { $in: req.user.receivedFriendRequests.map(f => f.userId) } });
         users.forEach(user => {
             if (!user.picture) user.picture = user.oauth.google.picture || "img/blank_profile.png";
         });

@@ -62,10 +62,17 @@ const UserSchema = new mongoose.Schema({
         }),
         default: [],
     },
-    pedingFriends: {
+    receivedFriendRequests: {
         type: Array({
-            friendId: mongoose.Schema.Types.ObjectId,
-            requestedAt: Number,
+            userId: mongoose.Schema.Types.ObjectId,
+            receivedAt: Number,
+        }),
+        default: [],
+    },
+    sentFriendRequests: {
+        type: Array({
+            userId: mongoose.Schema.Types.ObjectId,
+            sentAt: Number,
         }),
         default: [],
     },
@@ -369,7 +376,7 @@ const get_friends = async (req, res) => {
 
 const getPedingFriends = async (req, res) => {
     try {
-        const users = await User.find({ _id: { $in: req.user.pedingFriends.map(f => f.friendId) } });
+        const users = await User.find({ _id: { $in: req.user.receivedFriendRequests.map(f => f.userId) } });
         users.forEach(user => {
             if (!user.picture)
                 user.picture = user.oauth.google.picture || "img/blank_profile.png";
@@ -393,13 +400,44 @@ dotenv.config();
 const removeFriend = async (req, res) => {
     try {
         const friendId = req.body.friendId;
-        console.log(req.body);
         if (!req.user.friends.map(e => e.friendId.toString()).includes(friendId))
             throw new Error(friendId + " is not in your friends list");
         const response = await User.updateOne({ _id: req.user._id }, { $pull: { friends: { friendId: friendId } } });
         if (response.modifiedCount === 0)
             throw new Error("0 documents where updated");
         res.sendStatus(200);
+    }
+    catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e });
+    }
+};
+
+const sendRenderResult = async (req, res) => {
+    try {
+        const userId = req.query.userId.toString();
+        if (req.user.friends.map(e => e.friendId.toString()).includes(userId))
+            throw new Error(userId + " is already your friend");
+        const user = await User.findById(userId);
+        if (!user)
+            throw new Error(userId + " doesn't exist");
+        await User.findByIdAndUpdate(userId, {
+            $push: {
+                receivedFriendRequests: {
+                    userId: userId,
+                    receivedAt: Date.now(),
+                },
+            },
+        });
+        const newUserData = await User.findByIdAndUpdate(req.user._id, {
+            $push: {
+                sentFriendRequests: {
+                    userId: req.user._id,
+                    sentdAt: Date.now(),
+                },
+            },
+        });
+        res.json({ data: newUserData.sentFriendRequests });
     }
     catch (e) {
         console.log(e);
@@ -415,6 +453,7 @@ var user_router = express
     .get("/pedingFriends", getPedingFriends)
     .get("/chats", get_chats)
     .get("/delete", delete_user)
+    .get("/sendFriendRequest", sendRenderResult)
     .post("/removeFriend", removeFriend);
 
 const searchUsers = async (req, res) => {

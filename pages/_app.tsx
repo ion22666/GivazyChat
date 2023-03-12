@@ -4,7 +4,7 @@ import React, { useEffect } from "react";
 import Router from "next/router";
 import Head from "next/head";
 
-import { Loading, transition_duration, minimum_time_loading } from "../components/loading";
+import { Loading, transition_duration, minimum_time_loading } from "../components/LoadingScreen";
 
 let started_loading_at: number = performance.now();
 

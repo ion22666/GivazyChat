@@ -1,11 +1,11 @@
 import * as React from "react";
-import { AppContext } from "../pages";
-import UserRow from "./searchView/UserRow";
-import GroupIconEmpty from "./svg/GroupIconEmpty";
-import GroupIconFill from "./svg/GroupIconFill";
-import PersonFillIcon from "./svg/PersonFillIcon";
-import PersonIcon from "./svg/PersonIcon";
-import SearchIcon from "./svg/Search";
+import { AppContext } from "../../../pages";
+import UserRow from "./SearchUserRow";
+import GroupIconEmpty from "../../svg/GroupIconEmpty";
+import GroupIconFill from "../../svg/GroupIconFill";
+import PersonFillIcon from "../../svg/PersonFillIcon";
+import PersonIcon from "../../svg/PersonIcon";
+import SearchIcon from "../../svg/Search";
 
 type SearchCategory = {
     name: "Users" | "Groups";
@@ -68,7 +68,7 @@ function SearchViewComponent() {
                     </div>
                 </div>
             </div>
-            
+
             {/* search category chooser component */}
             <div className="flex w-full gap-8 rounded-b-lg bg-Gray1 bg-opacity-50 p-4">
                 {searchCategories.map(categoty => {
@@ -100,13 +100,10 @@ function SearchViewComponent() {
                     <ActiveRowBuilder key={index} rowData={data} />
                 ))}
             </div>
-            
         </div>
-
     );
 
     const mobileReturn = (
-
         <div className="flex h-full w-full flex-col">
             {/* search component */}
             <div className="flex w-full justify-center bg-Verde bg-opacity-75 py-4">
@@ -122,7 +119,7 @@ function SearchViewComponent() {
                     </div>
                 </div>
             </div>
-            
+
             {/* search category chooser component */}
             <div className="flex w-full gap-8 rounded-b-lg bg-Gray1 bg-opacity-50 p-4">
                 {searchCategories.map(categoty => {
@@ -148,19 +145,13 @@ function SearchViewComponent() {
             </div>
 
             {/* containerul cu rezultatele gasite (users sau groups) */}
-            
-            <div className="w-full flex-grow gap-4 overflow-y-auto rounded-lg bg-white bg-opacity-5 p-4 mt-2">
+
+            <div className="mt-2 w-full flex-grow gap-4 overflow-y-auto rounded-lg bg-white bg-opacity-5 p-4">
                 {activeSearchCategory.rowsData.map((data, index) => (
                     <ActiveRowBuilder key={index} rowData={data} />
                 ))}
             </div>
-            
         </div>
-
-
-
-
-
     );
 
     return isMobile ? mobileReturn : desktopReturn;

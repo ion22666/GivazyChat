@@ -32,10 +32,17 @@ const UserSchema = new mongoose.Schema({
         }),
         default: [],
     },
-    pedingFriends: {
+    receivedFriendRequests: {
         type: Array({
-            friendId: mongoose.Schema.Types.ObjectId,
-            requestedAt: Number,
+            userId: mongoose.Schema.Types.ObjectId,
+            receivedAt: Number,
+        }),
+        default: [],
+    },
+    sentFriendRequests: {
+        type: Array({
+            userId: mongoose.Schema.Types.ObjectId,
+            sentAt: Number,
         }),
         default: [],
     },

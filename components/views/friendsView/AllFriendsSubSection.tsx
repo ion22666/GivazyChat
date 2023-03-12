@@ -1,7 +1,7 @@
 import * as React from "react";
 
-import { AppContext } from "../../pages";
-import SearchComponent from "../SearchComponent";
+import { AppContext } from "../../../pages";
+import SearchComponent from "./FriendsSearchBar";
 import FriendRow from "./FriendRow";
 
 const AllFriends: React.FunctionComponent = props => {

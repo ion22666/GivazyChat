@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import SendIcon from "./svg/Send";
-import { AppContext } from "../pages";
-import Message from "./Message";
+import SendIcon from "../../svg/Send";
+import { AppContext } from "../../../pages";
+import Message from "./ChatMessage";
 
 const Chat: React.FunctionComponent = () => {
     let { userData, activeChat, userFriendsData, chats, socket } = React.useContext(AppContext);

@@ -1,11 +1,11 @@
 import * as React from "react";
 
-import { AppContext } from "../pages";
-import { VerdeColor } from "../pages/_app";
-import AllFriends from "./friendsViews/AllFriendsSubSection";
-import OnlineFriends from "./friendsViews/OnlineFriendsSubSection";
-import PaddingFriends from "./friendsViews/PedingFriendsSubSection";
-import FriendIcon from "./svg/Friend";
+import { AppContext } from "../../../pages";
+import { VerdeColor } from "../../../pages/_app";
+import AllFriends from "./AllFriendsSubSection";
+import OnlineFriends from "../../friendsViews/OnlineFriendsSubSection";
+import PaddingFriends from "../../friendsViews/PedingFriendsSubSection";
+import FriendIcon from "../../svg/Friend";
 
 type Views = "Online" | "All" | "Padding";
 
@@ -34,12 +34,9 @@ const FriendsSection: React.FunctionComponent = () => {
 
     const ActiveFriendsSubSection = friendSubSection.find(v => v.name === activeView).Component;
 
-    return (
+    const desktopReturn = (
         <div className="flex h-full w-full flex-col gap-2">
-            <div
-                style={{ display: isMobile ? "none" : "flex" }}
-                className="flex h-16 w-full flex-row items-center gap-2 rounded-lg bg-white bg-opacity-10 p-2 text-white [&>*]:mx-1  [&>*]:font-Whyte-Book [&>*]:text-2xl"
-            >
+            <div className="flex h-16 w-full flex-row items-center gap-2 rounded-lg bg-white bg-opacity-10 p-2 text-white [&>*]:mx-1  [&>*]:font-Whyte-Book [&>*]:text-2xl">
                 <div className="flex-wrow flex cursor-default items-center gap-1 border-r-2 border-white border-opacity-40">
                     <span>
                         <FriendIcon className="aspect-square h-6" />
@@ -68,6 +65,16 @@ const FriendsSection: React.FunctionComponent = () => {
             </div>
         </div>
     );
+
+    const mobileReturn = (
+        <div className="flex h-full w-full flex-col gap-2">
+            <div className="w-full flex-grow rounded-lg p-2">
+                <ActiveFriendsSubSection />
+            </div>
+        </div>
+    );
+
+    return isMobile ? mobileReturn : desktopReturn;
 };
 
 export default FriendsSection;

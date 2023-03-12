@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { AppContext } from "../../pages";
 import SearchIcon from "../svg/Search";
-import SearchComponent from "../SearchComponent";
+import SearchComponent from "../views/friendsView/FriendsSearchBar";
 import { VerdeColor } from "../../pages/_app";
 import VerticalDotsIcon from "../svg/VerticalDotsIcon";
 import ChatSquareIcon from "../svg/ChatSquareIcon";

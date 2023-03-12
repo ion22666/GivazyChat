@@ -1,11 +1,11 @@
 import * as React from "react";
 
 import io, { Socket } from "socket.io-client";
-import Chat from "../components/Chat";
+import Chat from "../components/views/chatView/ChatViewIndex";
 
 import FirstSection from "../components/FirstSection";
-import FriendsSection from "../components/FriendsSection";
-import SearchViewComponent from "../components/SearchViewComponent";
+import FriendsSection from "../components/views/friendsView/FriendsViewIndex";
+import SearchViewComponent from "../components/views/searchView/SearchViewIndex";
 import SecondSection from "../components/SecondSection";
 import MobileNavbar from "../components/MobileNavbar";
 
@@ -31,7 +31,6 @@ interface AppContext {
     removeFriend: (friendId: string) => Promise<void>;
     socket: Socket;
     isMobile: boolean;
-    
 }
 
 const InitialAppContext: Partial<AppContext> = {
@@ -138,7 +137,6 @@ function HomePage() {
         setUserFriendsData,
         socket,
         isMobile,
-        
     };
 
     const ActiveViewComponent = views.find(v => v.name === activeView).Component;
@@ -165,7 +163,7 @@ function HomePage() {
                 <ActiveViewComponent />
             </div>
             <div className="h-10 w-full bg-white">
-                <MobileNavbar/>
+                <MobileNavbar />
             </div>
         </div>
     );
