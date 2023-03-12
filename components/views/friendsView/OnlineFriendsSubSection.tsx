@@ -1,12 +1,11 @@
 import * as React from "react";
 
-import { AppContext } from "../../pages";
-import SearchIcon from "../svg/Search";
-import SearchComponent from "../views/friendsView/FriendsSearchBar";
-import { VerdeColor } from "../../pages/_app";
-import VerticalDotsIcon from "../svg/VerticalDotsIcon";
-import ChatSquareIcon from "../svg/ChatSquareIcon";
-import ChatSquareIconFill from "../svg/ChatSquareFillIcon";
+import { AppContext } from "../../../pages";
+import { VerdeColor } from "../../../pages/_app";
+import ChatSquareIconFill from "../../svg/ChatSquareFillIcon";
+import ChatSquareIcon from "../../svg/ChatSquareIcon";
+import VerticalDotsIcon from "../../svg/VerticalDotsIcon";
+import SearchComponent from "./FriendsSearchBar";
 
 const OnlineFriends: React.FunctionComponent = props => {
     const { userData, userFriendsData, chats, activeChat, setActiveChat, setUserFriendsData, socket } = React.useContext(AppContext);

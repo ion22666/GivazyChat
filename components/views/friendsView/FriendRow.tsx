@@ -1,14 +1,14 @@
 import * as React from "react";
 
-import { AppContext } from "../../pages";
-import { VerdeColor } from "../../pages/_app";
-import ChatSquareIconFill from "../svg/ChatSquareFillIcon";
-import ChatSquareIcon from "../svg/ChatSquareIcon";
-import DeleteUserIcon from "../svg/DeleteUserIcon";
-import PersonCircleIcon from "../svg/PersonCircleIcon";
-import UserSlashIcon from "../svg/UserSlashIcon";
-import VerticalDotsIcon from "../svg/VerticalDotsIcon";
-import hasParent from "../utils/hasParent";
+import { AppContext } from "../../../pages";
+import { VerdeColor } from "../../../pages/_app";
+import ChatSquareIconFill from "../../svg/ChatSquareFillIcon";
+import ChatSquareIcon from "../../svg/ChatSquareIcon";
+import DeleteUserIcon from "../../svg/DeleteUserIcon";
+import PersonCircleIcon from "../../svg/PersonCircleIcon";
+import UserSlashIcon from "../../svg/UserSlashIcon";
+import VerticalDotsIcon from "../../svg/VerticalDotsIcon";
+import hasParent from "../../utils/hasParent";
 
 type Props = {
     friendData: global.UserData;

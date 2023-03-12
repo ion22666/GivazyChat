@@ -3,9 +3,9 @@ import * as React from "react";
 import { AppContext } from "../../../pages";
 import { VerdeColor } from "../../../pages/_app";
 import AllFriends from "./AllFriendsSubSection";
-import OnlineFriends from "../../friendsViews/OnlineFriendsSubSection";
-import PaddingFriends from "../../friendsViews/PedingFriendsSubSection";
 import FriendIcon from "../../svg/Friend";
+import OnlineFriends from "./OnlineFriendsSubSection";
+import PaddingFriends from "./PedingFriendsSubSection";
 
 type Views = "Online" | "All" | "Padding";
 
