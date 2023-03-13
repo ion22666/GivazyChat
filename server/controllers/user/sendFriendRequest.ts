@@ -1,7 +1,7 @@
 import { Handler } from "express";
 import { User } from "../../models/userModel";
 
-export const sendRenderResult: Handler = async (req, res) => {
+export const sendFriendRequest: Handler = async (req, res) => {
     try {
         const userId: string = req.query.userId.toString();
 
@@ -16,19 +16,23 @@ export const sendRenderResult: Handler = async (req, res) => {
         await User.findByIdAndUpdate(userId, {
             $push: {
                 receivedFriendRequests: {
-                    userId: userId,
+                    userId: req.user._id,
                     receivedAt: Date.now(),
                 },
             },
         });
-        const newUserData = await User.findByIdAndUpdate(req.user._id, {
-            $push: {
-                sentFriendRequests: {
-                    userId: req.user._id,
-                    sentdAt: Date.now(),
+        const newUserData = await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $push: {
+                    sentFriendRequests: {
+                        userId: userId,
+                        sentdAt: Date.now(),
+                    },
                 },
             },
-        });
+            { new: true }
+        );
         res.json({ data: newUserData.sentFriendRequests });
     } catch (e) {
         console.log(e);

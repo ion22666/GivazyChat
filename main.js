@@ -65,14 +65,16 @@ const UserSchema = new mongoose.Schema({
     receivedFriendRequests: {
         type: Array({
             userId: mongoose.Schema.Types.ObjectId,
-            receivedAt: Number,
+            receivedAt: { type: Number, default: () => Date.now() },
+            _id: false,
         }),
         default: [],
     },
     sentFriendRequests: {
         type: Array({
             userId: mongoose.Schema.Types.ObjectId,
-            sentAt: Number,
+            sentAt: { type: Number, default: () => Date.now() },
+            _id: false,
         }),
         default: [],
     },
@@ -340,6 +342,33 @@ var register_router = express
     .get("/google", google_register_handler)
     .get("/facebook", facebook_register_handler);
 
+const cancelFriendRequest = async (req, res) => {
+    try {
+        const userId = req.query.userId.toString();
+        // make sure the user is in the friends requests list
+        if (!req.user.sentFriendRequests.map(e => e.userId.toString()).includes(userId))
+            throw new Error(userId + " is not in your Friend Requests List");
+        const user = await User.findById(userId);
+        if (!user)
+            throw new Error(userId + " doesn't exist");
+        await User.findByIdAndUpdate(userId, {
+            $pull: {
+                receivedFriendRequests: { userId: req.user._id },
+            },
+        });
+        const newUserData = await User.findByIdAndUpdate(req.user._id, {
+            $pull: {
+                sentFriendRequests: { userId: userId },
+            },
+        }, { new: true });
+        res.json({ data: newUserData.sentFriendRequests });
+    }
+    catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e });
+    }
+};
+
 dotenv.config();
 const delete_user = async (req, res) => {
     try {
@@ -413,18 +442,22 @@ const removeFriend = async (req, res) => {
     }
 };
 
-const sendRenderResult = async (req, res) => {
+const sendFriendRequest = async (req, res) => {
     try {
         const userId = req.query.userId.toString();
+        // make sure the user is not already a friend
         if (req.user.friends.map(e => e.friendId.toString()).includes(userId))
             throw new Error(userId + " is already your friend");
+        // make sure the user is not already in the friends requests list
+        if (req.user.sentFriendRequests.map(e => e.userId.toString()).includes(userId))
+            throw new Error(userId + " is already your Friend Requests List");
         const user = await User.findById(userId);
         if (!user)
             throw new Error(userId + " doesn't exist");
         await User.findByIdAndUpdate(userId, {
             $push: {
                 receivedFriendRequests: {
-                    userId: userId,
+                    userId: req.user._id,
                     receivedAt: Date.now(),
                 },
             },
@@ -432,11 +465,11 @@ const sendRenderResult = async (req, res) => {
         const newUserData = await User.findByIdAndUpdate(req.user._id, {
             $push: {
                 sentFriendRequests: {
-                    userId: req.user._id,
+                    userId: userId,
                     sentdAt: Date.now(),
                 },
             },
-        });
+        }, { new: true });
         res.json({ data: newUserData.sentFriendRequests });
     }
     catch (e) {
@@ -453,31 +486,59 @@ var user_router = express
     .get("/pedingFriends", getPedingFriends)
     .get("/chats", get_chats)
     .get("/delete", delete_user)
-    .get("/sendFriendRequest", sendRenderResult)
+    .get("/sendFriendRequest", sendFriendRequest)
+    .get("/cancelFriendRequest", cancelFriendRequest)
     .post("/removeFriend", removeFriend);
 
-const searchUsers = async (req, res) => {
+const searchGroups = async (req, res) => {
     try {
-        const searchInput = req.query.input.toString();
-        const usersData = await User.find({
-            $or: [
-                {
-                    username: new RegExp(searchInput, "i"),
-                },
-                {
-                    _id: searchInput.slice(0, 12).padEnd(12, "0"),
-                },
-            ],
-        });
-        return res.json({ data: usersData });
+        return res.json({ data: [] });
     }
     catch (e) {
         return res.json({ error: e });
     }
 };
 
+const countLimit = 20;
+const searchUsers = async (req, res) => {
+    var _a;
+    try {
+        const searchInput = req.query.input.toString();
+        const skip = parseInt(((_a = req.query.skip) === null || _a === void 0 ? void 0 : _a.toString()) || "0");
+        const usersData = await User.aggregate([
+            {
+                $match: {
+                    $and: [
+                        { $or: [{ username: new RegExp(searchInput, "i") }, { _id: searchInput.slice(0, 24).padEnd(24, "0") }] },
+                        { _id: { $nin: [...req.user.friends.map(f => f.friendId), req.user._id] } },
+                    ],
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    totalMatch: { $sum: 1 },
+                    data: { $push: "$$ROOT" },
+                },
+            },
+            {
+                $project: {
+                    _id: 0,
+                    totalMatch: 1,
+                    data: { $slice: ["$data", skip, countLimit] }, // limit data array to 10 elements
+                },
+            },
+        ]);
+        return res.json(Object.assign({}, usersData[0]));
+    }
+    catch (e) {
+        console.log(e);
+        return res.json({ error: e });
+    }
+};
+
 dotenv.config();
-var searchRouter = express.Router().get("/users", searchUsers);
+var searchRouter = express.Router().get("/users", searchUsers).get("/groups", searchGroups);
 
 dotenv.config();
 const dev = process.env.NODE_ENV !== "production";

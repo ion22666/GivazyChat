@@ -35,18 +35,18 @@ const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
 
     async function cancelFriendRequest() {
         const data = await window.request("api/user/cancelFriendRequest?userId=" + rowData._id);
-        const newUserData: global.UserData = await data.json();
-        setUserData(newUserData);
+        const newUserSentFriendRequests = (await data.json()).data;
+        userData.sentFriendRequests = newUserSentFriendRequests;
+        setUserData({ ...userData });
     }
 
-    console.log(userData.sentFriendRequests);
     const friendRequestAlreadySent: boolean = userData.sentFriendRequests.findIndex(e => e.userId === rowData._id) > -1;
 
     const desktopReturn = (
         // containerul al row, e flex cu justify-between
         <div
             className={
-                "flex h-12 w-full flex-row justify-between rounded-md duration-100 ease-linear hover:bg-white hover:bg-opacity-10" +
+                "mt-2 flex h-12 w-full flex-row justify-between rounded-md bg-white bg-opacity-5 p-1 shadow-sm shadow-white duration-100 ease-linear hover:bg-opacity-10 hover:shadow hover:shadow-Verde" +
                 " " +
                 "[&:hover_#dots]:text-opacity-100 [&:hover_#hiddenOnParentHover]:hidden [&:hover_#leftSide]:gap-2 [&:hover_#name]:text-Verde [&:hover_#visibleOnParentHover]:block [&>*]:duration-100 [&>*]:ease-linear [&_#visibleOnParentHover]:hidden"
             }
@@ -71,18 +71,26 @@ const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
             <div className="flex h-full px-2">
                 {/* containerul la iconita cu add friend */}
                 <div
-                    className={"h-full cursor-pointer rounded-full p-2 duration-100 ease-linear hover:bg-white hover:bg-opacity-5 hover:p-3 hover:text-Verde"}
+                    className={
+                        "flex h-full cursor-pointer items-center gap-2 rounded-full p-1 duration-100 ease-linear hover:bg-white hover:bg-opacity-5 hover:p-2 hover:text-Verde"
+                    }
                     onClick={friendRequestAlreadySent ? cancelFriendRequest : sendFriendRequest}
                 >
                     {friendRequestAlreadySent ? (
                         <>
-                            <PersonUpEmptyIcon id="hiddenOnParentHover" className="h-full text-white text-opacity-10" />
-                            <DeleteUserIcon id="visibleOnParentHover" className="h-full text-white" />
+                            <PersonUpEmptyIcon id="hiddenOnParentHover" className="h-full text-Verde " />
+                            <DeleteUserIcon id="visibleOnParentHover" className="h-full text-Crimson" />
+                            <div id="visibleOnParentHover" className="text-Crimson">
+                                {"Cancel Request"}
+                            </div>
                         </>
                     ) : (
                         <>
                             <AddUserEmptyIcon id="hiddenOnParentHover" className="h-full text-white text-opacity-10" />
                             <AddUserFillIcon id="visibleOnParentHover" className="h-full text-white" />
+                            <div id="visibleOnParentHover" className="text-Crimson">
+                                {"Send Friend Request"}
+                            </div>
                         </>
                     )}
                 </div>

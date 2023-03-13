@@ -31,7 +31,7 @@ const FriendRow: React.FunctionComponent<Props> = ({ friendData, menuIsOpen, clo
 
     // cand meniul este deshis , daca userul face click oriunde pe ecran inafara de meniul in sine sau una dintre iconitele cu 3 puncte, atunci se inchide meniul
     React.useEffect(() => {
-        console.log(friendData.username, menuIsOpen);
+
         if (!menuIsOpen) return;
         const closeMenuWrapper = (e: MouseEvent) => {
             const target = e.target as HTMLElement;

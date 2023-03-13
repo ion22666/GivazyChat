@@ -31,6 +31,8 @@ interface AppContext {
     removeFriend: (friendId: string) => Promise<void>;
     socket: Socket;
     isMobile: boolean;
+    searchViewInput: string;
+    setSearchViewInput: React.Dispatch<string>;
 }
 
 const InitialAppContext: Partial<AppContext> = {
@@ -83,6 +85,7 @@ function HomePage() {
     const [chats, setChats] = React.useState<any>();
     const [activeChat, setActiveChat] = React.useState<any>();
     const [activeView, setActiveView] = React.useState<any>("friends");
+    const [searchViewInput, setSearchViewInput] = React.useState<any>("");
 
     const [isMobile, setIsMobile] = React.useState<any>(true);
 
@@ -137,6 +140,8 @@ function HomePage() {
         setUserFriendsData,
         socket,
         isMobile,
+        searchViewInput,
+        setSearchViewInput,
     };
 
     const ActiveViewComponent = views.find(v => v.name === activeView).Component;

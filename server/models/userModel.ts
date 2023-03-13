@@ -35,14 +35,16 @@ const UserSchema = new mongoose.Schema({
     receivedFriendRequests: {
         type: Array({
             userId: mongoose.Schema.Types.ObjectId,
-            receivedAt: Number,
+            receivedAt: { type: Number, default: () => Date.now() },
+            _id: false,
         }),
         default: [],
     },
     sentFriendRequests: {
         type: Array({
             userId: mongoose.Schema.Types.ObjectId,
-            sentAt: Number,
+            sentAt: { type: Number, default: () => Date.now() },
+            _id: false,
         }),
         default: [],
     },
