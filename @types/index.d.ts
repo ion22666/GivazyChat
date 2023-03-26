@@ -11,8 +11,10 @@ declare namespace global {
         picture: string;
         locale: string;
     }
+
     interface User {
-        _id: stirng;
+        id: string;
+        _id: string;
         email?: string;
         username?: string;
         password?: string;
@@ -30,10 +32,41 @@ declare namespace global {
 
         createJWT(): string;
         getChatsIds(): Promise<string[]>;
+        updateSelf(): Promise<void>;
+        currentUser(): CurrentUser;
+        friendData(currentUserId: { currentUserId: string }): FriendData;
+        friendData(chatId: { chatId: string }): FriendData;
+        userData(): UserData;
     }
 
-    interface UserData extends User {
-        isOnline?: boolean;
+    interface UserData {
+        id: stirng;
+        email?: string;
+        username?: string;
+        picture?: string;
+    }
+
+    interface FriendData extends UserData {
+        chatId: string;
+    }
+
+    interface CurrentUser extends UserData {
+        oauth?: {
+            google?: GoogleUserInfo;
+            microsoft?: {
+                email: string;
+                profile: string;
+            };
+        };
+    }
+
+    interface receivedFriendRequests {
+        friendData: UserData;
+        receivedAt: number;
+    }
+    interface sentFriendRequests {
+        friendData: UserData;
+        sendAt: number;
     }
 
     interface JWT {
@@ -52,6 +85,7 @@ declare namespace global {
     }
     interface Chat {
         _id: string;
+        id: string;
         participants: string[] | Types.ObjectId[];
         messages: Message[];
         pushMessage(message: Message): Promise<void>;

@@ -5,6 +5,8 @@ import Router from "next/router";
 import Head from "next/head";
 
 import { Loading, transition_duration, minimum_time_loading } from "../components/LoadingScreen";
+import { Provider } from "react-redux";
+import { store } from "../src/store";
 
 let started_loading_at: number = performance.now();
 
@@ -32,7 +34,7 @@ function MyApp({ Component, pageProps }) {
     }, []);
 
     return (
-        <>
+        <Provider store={store}>
             <Head>
                 <meta charSet="UTF-8" />
                 <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
@@ -41,7 +43,7 @@ function MyApp({ Component, pageProps }) {
             </Head>
             <Loading is_loading={is_loading} />
             <Component {...pageProps} />
-        </>
+        </Provider>
     );
 }
 

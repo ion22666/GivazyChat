@@ -1,12 +1,14 @@
 import * as React from "react";
 import { AppContext } from "../../../pages";
-import UserRow from "./SearchUserRow";
+import { UserRow } from "./SearchUserRow";
 import GroupIconEmpty from "../../svg/GroupIconEmpty";
 import GroupIconFill from "../../svg/GroupIconFill";
 import PersonFillIcon from "../../svg/PersonFillIcon";
 import PersonIcon from "../../svg/PersonIcon";
 import SearchIcon from "../../svg/Search";
 import ExclamationIcon from "../../svg/ExclamationIcon";
+import { useDispatch } from "react-redux";
+import { searchSlice, useActiveCategory } from "../../../src/features/searchSlice";
 
 type SearchCategory = {
     name: "Users" | "Groups";
@@ -19,31 +21,33 @@ type SearchCategory = {
     searchBarPlaceholder: string;
 };
 
-const searchCategories: SearchCategory[] = [
-    {
-        name: "Users",
-        ActiveIcon: PersonFillIcon,
-        InactiveIcon: PersonIcon,
-        rowsData: [],
-        RowBuilderComponent: UserRow,
-        apiSearchEndpoint: "api/search/users",
-        searchBarPlaceholder: "Search by username or #user_id",
-        matchFound: null,
-    },
-    {
-        name: "Groups",
-        ActiveIcon: GroupIconFill,
-        InactiveIcon: GroupIconEmpty,
-        rowsData: [],
-        RowBuilderComponent: UserRow,
-        apiSearchEndpoint: "api/search/groups",
-        searchBarPlaceholder: "Search by group name or #group_id",
-        matchFound: null,
-    },
-];
 const onScreenMaxRows = 10;
 
 function SearchViewComponent() {
+    const searchCategories: SearchCategory[] = [
+        {
+            name: "Users",
+            ActiveIcon: PersonFillIcon,
+            InactiveIcon: PersonIcon,
+            rowsData: [],
+            RowBuilderComponent: UserRow,
+            apiSearchEndpoint: "api/search/users",
+            searchBarPlaceholder: "Search by username or #user_id",
+            matchFound: null,
+        },
+        {
+            name: "Groups",
+            ActiveIcon: GroupIconFill,
+            InactiveIcon: GroupIconEmpty,
+            rowsData: [],
+            RowBuilderComponent: UserRow,
+            apiSearchEndpoint: "api/search/groups",
+            searchBarPlaceholder: "Search by group name or #group_id",
+            matchFound: null,
+        },
+    ];
+    const dispatch = useDispatch();
+    const activeSearchCategoryName = useActiveCategory();
     const { isMobile, searchViewInput, setSearchViewInput } = React.useContext(AppContext);
     const [activeSearchCategory, setActiveSearchCategory] = React.useState<SearchCategory>(searchCategories[0]);
     const [isSearching, setIsSearching] = React.useState<boolean>(null);
@@ -55,6 +59,10 @@ function SearchViewComponent() {
     const thereIsMoreToFetch = activeSearchCategory.rowsData.length < activeSearchCategory.matchFound;
     const isEndOfResults = !isEmptyWarning && !thereIsMoreToFetch && activeSearchCategory.rowsData.length > onScreenMaxRows;
     const toDisplayTheResults = !(isSearching && !thereIsMoreToFetch);
+
+    React.useEffect(() => {
+        setActiveSearchCategory(searchCategories.find(e => e.name === activeSearchCategoryName));
+    }, [activeSearchCategoryName]);
 
     React.useEffect(() => {
         let timeoutId = setTimeout(updateCategoryRowsData, 200);
@@ -89,6 +97,7 @@ function SearchViewComponent() {
     }
 
     function onInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+        dispatch(searchSlice.actions.setInput(event.currentTarget.value));
         setSearchViewInput(event.currentTarget.value);
     }
 
@@ -101,6 +110,7 @@ function SearchViewComponent() {
     }
 
     function switchCategory(category: SearchCategory) {
+        dispatch(searchSlice.actions.setActiveCategory(category.name));
         setActiveSearchCategory(category);
         updateCategoryRowsData(category);
     }
@@ -156,7 +166,9 @@ function SearchViewComponent() {
                 {/* cand search input este gol */}
                 {isEmptyWarning && (
                     <div className="flex w-full items-center justify-center p-2 text-center font-Whyte-Medium text-xl text-white">
-                        <ExclamationIcon className="h-5" /> {"Search field is empty. Please enter something to search for"} <ExclamationIcon className="h-5" />
+                        {/* <ExclamationIcon className="h-5" /> */}
+                        {"so empty"}
+                        {/* <ExclamationIcon className="h-5" /> */}
                     </div>
                 )}
 
@@ -180,17 +192,19 @@ function SearchViewComponent() {
     );
 
     const mobileReturn = (
-        <div className="flex h-full w-full flex-col">
-            {/* search component */}
-            <div className="flex w-full justify-center bg-Verde bg-opacity-75 py-4">
+        <div className="flex h-full w-full flex-col rounded-md px-2">
+            {/* search bar component */}
+            <div className="flex w-full justify-center rounded-t-lg bg-Verde bg-opacity-75 py-4">
                 <div className="flex h-12 min-w-[90%] flex-row items-center gap-1 rounded-md bg-Gray2 px-2 py-1">
                     <input
                         onChange={onInputChange}
+                        onKeyDown={onKeyDown}
+                        value={searchViewInput}
+                        placeholder={activeSearchCategory.searchBarPlaceholder}
                         className="h-full flex-grow bg-transparent font-Whyte-Medium text-xl text-Verde placeholder:font-Whyte-Italic"
                         type="text"
-                        placeholder="Search"
                     />
-                    <div className="h-full p-1 duration-100  ease-linear hover:p-2">
+                    <div onClick={updateCategoryRowsData as any} className="h-full p-1 duration-100  ease-linear hover:p-2">
                         <SearchIcon className="h-full text-white active:text-Verde" />
                     </div>
                 </div>
@@ -204,7 +218,7 @@ function SearchViewComponent() {
                     return (
                         <div
                             key={categoty.name}
-                            onClick={() => setActiveSearchCategory({ ...categoty })}
+                            onClick={() => switchCategory({ ...categoty })}
                             className={
                                 "flex flex-grow cursor-pointer items-center justify-center gap-2 rounded-lg p-4" +
                                 " " +
@@ -221,11 +235,34 @@ function SearchViewComponent() {
             </div>
 
             {/* containerul cu rezultatele gasite (users sau groups) */}
+            <div onScroll={onScroll} className="mt-4 w-full flex-grow gap-4 overflow-y-auto rounded-lg bg-white bg-opacity-5 p-4">
+                {/* display the total match count */}
+                <div className="-mt-2 text-white text-opacity-50">{(activeSearchCategory.matchFound || "0") + " - total matches"}</div>
 
-            <div className="mt-2 w-full flex-grow gap-4 overflow-y-auto rounded-lg bg-white bg-opacity-5 p-4">
-                {activeSearchCategory.rowsData.map((data, index) => (
-                    <ActiveRowBuilder key={index} rowData={data} />
-                ))}
+                {/* cand search input este gol */}
+                {isEmptyWarning && (
+                    <div className="flex w-full items-center justify-center p-2 text-center font-Whyte-Medium text-xl text-white">
+                        {/* <ExclamationIcon className="h-5" /> */}
+                        {"so empty"}
+                        {/* <ExclamationIcon className="h-5" /> */}
+                    </div>
+                )}
+
+                {/* rezultatele */}
+                {toDisplayTheResults && activeSearchCategory.rowsData.map((data, index) => <ActiveRowBuilder key={index} rowData={data} />)}
+
+                {/* is searching animation */}
+                {(isSearching || thereIsMoreToFetch) && (
+                    <div className="flex w-full items-center justify-center p-2">
+                        <span className="loader"></span>
+                    </div>
+                )}
+
+                {/* cand nu sa gasit nimic */}
+                {noDataFound && <div className="flex w-full items-center justify-center p-2 text-center font-Whyte-Medium text-xl text-white">{"No Data Found"}</div>}
+
+                {/* cand nu mai exista rezultate */}
+                {isEndOfResults && <div className="flex w-full items-center justify-center p-2 text-center font-Whyte-Medium text-xl text-white">{"No more results"}</div>}
             </div>
         </div>
     );

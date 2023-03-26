@@ -1,7 +1,10 @@
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
 import { AppContext } from "../../../pages";
 import { VerdeColor } from "../../../pages/_app";
+import { chatSlice, useAvailableChats } from "../../../src/features/chatSlice";
+import { friendsSlice, removeFriend, useFriends, useOnlineFriends } from "../../../src/features/friendsSlice";
 import ChatSquareIconFill from "../../svg/ChatSquareFillIcon";
 import ChatSquareIcon from "../../svg/ChatSquareIcon";
 import DeleteUserIcon from "../../svg/DeleteUserIcon";
@@ -11,7 +14,7 @@ import VerticalDotsIcon from "../../svg/VerticalDotsIcon";
 import hasParent from "../../utils/hasParent";
 
 type Props = {
-    friendData: global.UserData;
+    friendData: global.FriendData;
     menuIsOpen: boolean;
     closeMenu: () => any;
     openMenu: () => any;
@@ -25,27 +28,32 @@ type Props = {
 // openMenu: deshide meniul cu optiuni pentru acest rand
 
 const FriendRow: React.FunctionComponent<Props> = ({ friendData, menuIsOpen, closeMenu, openMenu }: Props) => {
-    const { userData, userFriendsData, chats, setActiveChat, isMobile, removeFriend } = React.useContext(AppContext);
+    const { setActiveView, isMobile, socket } = React.useContext(AppContext);
+    const dispatch = useDispatch();
+    const onlineFriends = useOnlineFriends();
+    const availableChats = useAvailableChats();
 
     const menuRef = React.useRef<HTMLDivElement>();
+    const isOnline = onlineFriends.find(id => id === friendData.id);
 
     // cand meniul este deshis , daca userul face click oriunde pe ecran inafara de meniul in sine sau una dintre iconitele cu 3 puncte, atunci se inchide meniul
     React.useEffect(() => {
-
         if (!menuIsOpen) return;
         const closeMenuWrapper = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
             if (target.id === "openMenuDiv" || hasParent(target, menuRef.current)) return;
             return closeMenu();
         };
-
         document.addEventListener("click", closeMenuWrapper);
-        return () => document.removeEventListener("click", closeMenuWrapper);
+
+        // after a friend is removed, close the menu when the server emits and update of the friendsData
+        socket.on("Update userFriendsData", closeMenu);
+
+        return () => {
+            document.removeEventListener("click", closeMenuWrapper);
+            socket.off("Update userFriendsData", closeMenu);
+        };
     }, [menuIsOpen]);
-
-    if (!userData || !userFriendsData || !chats) return <div>{"Loading..."}</div>;
-
-    const chatId = userData.friends.find(e => e.friendId === friendData._id).chatId;
 
     type MenuOption = {
         optionText: string;
@@ -69,13 +77,17 @@ const FriendRow: React.FunctionComponent<Props> = ({ friendData, menuIsOpen, clo
         {
             optionText: "Remove Friend",
             Icon: DeleteUserIcon,
-            onClick() {
-                removeFriend(friendData._id).then(r => closeMenu());
+            async onClick() {
+                dispatch<any>(removeFriend(friendData.id));
             },
             className: "[&>*]:hover:text-Crimson hover:bg-red",
         },
     ];
-
+    function goToChat(id: string) {
+        if (!availableChats.includes(id)) return;
+        setActiveView("chat");
+        dispatch(chatSlice.actions.setActiveChatId(id));
+    }
     const desktopReturn = (
         // containerul al row, e flex cu justify-between
         <div className="flex h-12 w-full flex-row justify-between rounded-md duration-100 ease-linear hover:bg-white hover:bg-opacity-10 [&:hover_#dots]:text-opacity-100 [&:hover_#empty]:hidden [&:hover_#full]:block [&:hover_#leftSide]:gap-2 [&:hover_#name]:text-Verde [&>*]:duration-100 [&>*]:ease-linear [&_#full]:hidden">
@@ -85,7 +97,7 @@ const FriendRow: React.FunctionComponent<Props> = ({ friendData, menuIsOpen, clo
                 <div className="aspect-square h-full">
                     <img src={friendData.picture} referrerPolicy="no-referrer" className="aspect-square h-full rounded-full" />
                     <div
-                        style={{ backgroundColor: friendData.isOnline ? VerdeColor : "gray" }}
+                        style={{ backgroundColor: isOnline ? VerdeColor : "gray" }}
                         className="absolute bottom-0 right-0 box-content aspect-square h-2 translate-x-1/4 translate-y-1/4 rounded-full border-4 border-Gray3"
                     ></div>
                 </div>
@@ -98,7 +110,7 @@ const FriendRow: React.FunctionComponent<Props> = ({ friendData, menuIsOpen, clo
             <div className="flex h-full px-2">
                 {/* containerul la iconita cu chat */}
                 <div
-                    onClick={() => setActiveChat(chats.find(e => e._id === chatId))}
+                    onClick={() => goToChat(friendData.chatId)}
                     className="h-full cursor-pointer rounded-full p-2 duration-100 ease-linear hover:bg-white hover:bg-opacity-5 hover:p-3 [&:hover_:nth-child(2)]:text-Verde"
                 >
                     <ChatSquareIcon id="empty" className="h-full text-white text-opacity-10" />

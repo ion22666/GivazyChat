@@ -5,11 +5,14 @@ import { VerdeColor } from "../../../pages/_app";
 import AllFriends from "./AllFriendsSubSection";
 import FriendIcon from "../../svg/Friend";
 import OnlineFriends from "./OnlineFriendsSubSection";
-import PaddingFriends from "./PedingFriendsSubSection";
+import PedingFriends from "./PedingFriendsSubSection";
+import { useDispatch } from "react-redux";
+import { useFriends } from "../../../src/features/friendsSlice";
+import { searchSlice } from "../../../src/features/searchSlice";
 
-type Views = "Online" | "All" | "Padding";
+type SubSections = "Online" | "All" | "Pending";
 
-const friendSubSection: { name: Views; Component: React.FunctionComponent<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>> }[] = [
+const friendSubSection: { name: SubSections; Component: React.FunctionComponent<React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement>> }[] = [
     {
         name: "Online",
         Component: OnlineFriends,
@@ -19,20 +22,28 @@ const friendSubSection: { name: Views; Component: React.FunctionComponent<React.
         Component: AllFriends,
     },
     {
-        name: "Padding",
-        Component: PaddingFriends,
+        name: "Pending",
+        Component: PedingFriends,
     },
 ];
 
 const FriendsSection: React.FunctionComponent = () => {
-    const { userData, userFriendsData, chats, activeChat, setActiveChat, isMobile } = React.useContext(AppContext);
-    let [activeView, setActiveView] = React.useState<Views>("Online");
+    const dispatch = useDispatch();
+    const friends = useFriends();
+    const { isMobile, setActiveView, searchViewInput } = React.useContext(AppContext);
+    const [activeSubSection, setActiveSubSection] = React.useState<SubSections>("Online");
 
-    const isReady = userData && userFriendsData && chats;
+    const isReady = friends;
 
     if (!isReady) return <div>{"Loading..."}</div>;
 
-    const ActiveFriendsSubSection = friendSubSection.find(v => v.name === activeView).Component;
+    const ActiveFriendsSubSection = friendSubSection.find(v => v.name === activeSubSection).Component;
+
+    const goToFriendsSearch = React.useCallback(() => {
+        setActiveView("search");
+        dispatch(searchSlice.actions.setActiveCategory("Users"));
+        dispatch(searchSlice.actions.setInput(""));
+    }, []);
 
     const desktopReturn = (
         <div className="flex h-full w-full flex-col gap-2">
@@ -47,16 +58,19 @@ const FriendsSection: React.FunctionComponent = () => {
                 {friendSubSection.map(({ name }) => {
                     return (
                         <div
-                            onClick={() => setActiveView(name)}
+                            onClick={() => setActiveSubSection(name)}
                             key={name}
                             className="cursor-pointer rounded-lg px-1 duration-100 ease-linear hover:bg-white hover:bg-opacity-10"
-                            style={{ color: activeView === name ? VerdeColor : "white" }}
+                            style={{ color: activeSubSection === name ? VerdeColor : "white" }}
                         >
                             {name}
                         </div>
                     );
                 })}
-                <div className="cursor-pointer whitespace-nowrap rounded-lg bg-Verde bg-opacity-70 px-2  duration-100 ease-linear hover:scale-95 hover:bg-opacity-100 active:scale-90">
+                <div
+                    onClick={goToFriendsSearch}
+                    className="cursor-pointer whitespace-nowrap rounded-lg bg-Verde bg-opacity-70 px-2  duration-100 ease-linear hover:scale-95 hover:bg-opacity-100 active:scale-90"
+                >
                     {"Add Friend"}
                 </div>
             </div>

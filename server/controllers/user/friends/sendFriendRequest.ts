@@ -1,5 +1,6 @@
 import { Handler } from "express";
-import { User } from "../../models/userModel";
+import { User } from "../../../models/userModel";
+import { io } from "../../../ws-server";
 
 export const sendFriendRequest: Handler = async (req, res) => {
     try {
@@ -13,15 +14,19 @@ export const sendFriendRequest: Handler = async (req, res) => {
         const user = await User.findById(userId);
         if (!user) throw new Error(userId + " doesn't exist");
 
-        await User.findByIdAndUpdate(userId, {
-            $push: {
-                receivedFriendRequests: {
-                    userId: req.user._id,
-                    receivedAt: Date.now(),
+        const receiverData = await User.findByIdAndUpdate(
+            userId,
+            {
+                $push: {
+                    receivedFriendRequests: {
+                        userId: req.user._id,
+                        receivedAt: Date.now(),
+                    },
                 },
             },
-        });
-        const newUserData = await User.findByIdAndUpdate(
+            { new: true }
+        );
+        const senderData = await User.findByIdAndUpdate(
             req.user._id,
             {
                 $push: {
@@ -33,9 +38,14 @@ export const sendFriendRequest: Handler = async (req, res) => {
             },
             { new: true }
         );
-        res.json({ data: newUserData.sentFriendRequests });
+
+        io.to(userId).emit("set CurrentUser", receiverData);
+        const request: global.sentFriendRequests = {
+            friendData: receiverData.userData(),
+            sendAt: senderData.sentFriendRequests.find(e => e.userId.toString() === receiverData.id).sentAt,
+        };
+        return res.json({ data: request });
     } catch (e) {
         console.log(e);
-        res.status(500).json({ error: e });
     }
 };

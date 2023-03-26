@@ -3,46 +3,35 @@ import * as React from "react";
 import SendIcon from "../../svg/Send";
 import { AppContext } from "../../../pages";
 import Message from "./ChatMessage";
+import { useDispatch } from "react-redux";
+import { chatSlice, useActiveChat } from "../../../src/features/chatSlice";
+import { useCurrentUser } from "../../../src/features/currentUserSlice";
+import { useFriends } from "../../../src/features/friendsSlice";
 
 const Chat: React.FunctionComponent = () => {
-    let { userData, activeChat, userFriendsData, chats, socket } = React.useContext(AppContext);
-
-    // avem nevoie de obiectul 'AppContext' pentru a putea folosi 'AppObj.forceReRenderChat()'
-    // deorece 'forceReRenderChat()' foloseste 'this'
-    const AppObj = React.useContext(AppContext);
-
-    // cand pagina de chat este on screen, conectam clientul la serverul ws pentru a putea primi mesaje
-    React.useEffect(() => {
-        socket.on("push message", (message: global.Message, chat_id) => {
-            if (activeChat._id === chat_id) {
-                activeChat.messages.push(message);
-                AppObj.forceReRenderChat();
-            }
-        });
-        return () => {
-            socket.off("push message");
-        };
-    }, []);
-
-    // fara userData && userFriendsData pagina de chat nu poate exista
-    if (!(userData && userFriendsData)) return <div>{"Loading..."}</div>;
-
-    if (chats.length === 0) return <div>{"You have no friends :("}</div>;
-
-    // daca nu exista inca un activeChat, il folosim pe primul din lista ( nu e nevoie sa folosim 'setChats()' )
-    if (!activeChat) activeChat = chats[0];
+    const dispatch = useDispatch();
+    const activeChat = useActiveChat();
+    console.log(activeChat);
+    const currentUser = useCurrentUser();
+    const friends = useFriends();
+    const { socket } = React.useContext(AppContext);
 
     const inputRef = React.useRef<HTMLInputElement>();
 
     function sendMessage() {
-        const partial_message: global.PartialMessage = {
+        const partialMessage: global.PartialMessage = {
             content: inputRef.current.value,
         };
-        socket.emit("send message", partial_message, activeChat._id);
+        socket.emit("send message", partialMessage, activeChat.id);
     }
+    // fara CurrentUser && friends pagina de chat nu poate exista
+    if (!(currentUser && friends)) return <div>{"Loading..."}</div>;
 
-    // gasim userul la care se refera activeChat-ul din lista 'userFriendsData'
-    const friendData = userFriendsData.find(e => e._id === userData.friends.find(e => e.chatId === activeChat._id).friendId);
+    // daca nu exista un activeChat
+    if (!activeChat) return <div>{"No chat selected"}</div>;
+
+    // gasim userul la care se refera activeChat-ul din lista 'friends'
+    const friendData = friends.find(e => e.id === activeChat.participants.find(id => id !== currentUser.id));
 
     return (
         // <DesktopChatComponent
@@ -50,7 +39,7 @@ const Chat: React.FunctionComponent = () => {
             {/* Asta e containeru cu mesaje */}
             <div className="h-full w-full overflow-y-auto overflow-x-hidden">
                 {activeChat.messages.map(message => (
-                    <Message senderData={message.sender === userData._id ? userData : friendData} message={message} />
+                    <Message key={message.sendAt} senderData={message.sender === currentUser.id ? currentUser : friendData} message={message} />
                 ))}
                 {/* asta lam pus de test ca sa vedem cum merge scrollul */}
                 <div style={{ height: "100vh" }}></div>

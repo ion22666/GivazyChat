@@ -31,7 +31,7 @@ const searchUsers: Handler = async (req, res) => {
                 },
             },
         ]);
-
+        usersData[0].data = usersData[0].data.map(e => ({ ...e, id: e._id }));
         return res.json({ ...usersData[0] });
     } catch (e) {
         console.log(e);

@@ -2,62 +2,41 @@ import * as React from "react";
 
 import { AppContext } from "../../../pages";
 import { VerdeColor } from "../../../pages/_app";
+import { useOnlineFriends } from "../../../src/features/friendsSlice";
 import ChatSquareIconFill from "../../svg/ChatSquareFillIcon";
 import ChatSquareIcon from "../../svg/ChatSquareIcon";
 import VerticalDotsIcon from "../../svg/VerticalDotsIcon";
+import FriendRow from "./FriendRow";
 import SearchComponent from "./FriendsSearchBar";
 
 const OnlineFriends: React.FunctionComponent = props => {
-    const { userData, userFriendsData, chats, activeChat, setActiveChat, setUserFriendsData, socket } = React.useContext(AppContext);
-
-    if (!userData || !userFriendsData || !chats) return <div>{"Loading..."}</div>;
-
-    const onlineFriends = userFriendsData.filter(e => e.isOnline);
-
-    React.useEffect(() => {
-        setOnScreenFriends([...userFriendsData.filter(e => e.isOnline)]);
-    }, [userFriendsData]);
-
-    const [onScreenFriends, setOnScreenFriends] = React.useState(onlineFriends);
+    const { socket } = React.useContext(AppContext);
+    const onlineFriends = useOnlineFriends();
+    //
+    const [onScreenFriends, setOnScreenFriends] = React.useState<global.FriendData[]>(onlineFriends);
+    const [activeMenuId, setActiveMenuId] = React.useState<string>(null);
 
     return (
-        <div {...props} className="">
-            <SearchComponent<global.UserData> state={onlineFriends} setState={setOnScreenFriends} filter={(text, e) => e.username.toLowerCase().includes(text.toLowerCase())} />
+        <div {...props} className="flex h-full w-full flex-col gap-2">
+            <SearchComponent<global.FriendData>
+                nativeState={onlineFriends}
+                setState={setOnScreenFriends}
+                filter={(text, e) => e.username.toLowerCase().includes(text.toLowerCase())}
+            />
 
             <div>{`Online - ${onlineFriends.length}`}</div>
-            {onScreenFriends.map(friendData => {
-                const chatId = userData.friends.find(e => e.friendId === friendData._id).chatId;
-                const isActive = activeChat && activeChat._id === chatId;
-                return (
-                    <div
-                        key={friendData._id}
-                        onClick={() => setActiveChat(chats.find(e => e._id === chatId))}
-                        className="flex h-10 w-full cursor-pointer flex-row content-between items-center gap-4 rounded-md p-1 duration-100 ease-linear hover:gap-2 hover:bg-white hover:bg-opacity-10"
-                    >
-                        <div className="h-full">
-                            <div className="aspect-square h-full">
-                                <img src={friendData.picture} referrerPolicy="no-referrer" className="aspect-square h-full rounded-full" />
-                                <div
-                                    style={{ backgroundColor: friendData.isOnline ? "rgb(89 226 84)" : "#444" }}
-                                    className="absolute bottom-0 right-0 box-content aspect-square h-2 translate-x-1/4 translate-y-1/4 rounded-full border-4 border-Gray2"
-                                ></div>
-                            </div>
-                            <div className={"text-lg"} style={{ color: isActive ? VerdeColor : "white" }}>
-                                {friendData.username}
-                            </div>
-                        </div>
-                        <div className="h-full px-2">
-                            <div className="h-full p-1 odd:hidden hover:odd:hidden hover:even:hidden">
-                                <ChatSquareIcon className="h-full" />
-                                <ChatSquareIconFill className="h-full" />
-                            </div>
-                            <div className="h-full p-1">
-                                <VerticalDotsIcon className="h-full" />
-                            </div>
-                        </div>
-                    </div>
-                );
-            })}
+
+            <div className="flex-gro block w-full [&>*]:mt-2">
+                {onScreenFriends.map(friendData => (
+                    <FriendRow
+                        key={friendData.id}
+                        friendData={friendData}
+                        menuIsOpen={activeMenuId === friendData.id}
+                        closeMenu={() => setActiveMenuId(null)}
+                        openMenu={() => setActiveMenuId(friendData.id)}
+                    />
+                ))}
+            </div>
         </div>
     );
 };

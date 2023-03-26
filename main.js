@@ -3,8 +3,8 @@ import express from 'express';
 import next from 'next';
 import http from 'http';
 import { Server } from 'socket.io';
-import mongoose from 'mongoose';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import chalk from 'chalk';
 import { parse } from 'url';
 import bcrypt from 'bcrypt';
@@ -98,13 +98,60 @@ const UserSchema = new mongoose.Schema({
         },
     },
 });
-UserSchema.methods.createJWT = function () {
+const createJWT = function () {
     return jwt.sign({ sub: this._id }, process.env.JWT_PRIVETE_KEY || "givazy", { algorithm: "HS256" });
 };
-UserSchema.methods.getChatsIds = async function () {
+const getChatsIds = async function () {
     return (await Chat.find({ participants: this._id }, { _id: 1 })).map(e => e._id.toString());
 };
+const updateSelf = async function () {
+    const updatedUser = await User.findById(this._id);
+    for (const key in this)
+        this[key] = updatedUser[key];
+};
+const userData = function () {
+    return {
+        id: this.id,
+        email: this.email,
+        username: this.username,
+        picture: this.picture,
+    };
+};
+const friendData = function ({ currentUserId, chatId }) {
+    chatId = chatId ? chatId : this.friends.find(f => f.friendId.toString() === currentUserId.toString()).chatId;
+    return Object.assign(Object.assign({}, this.userData()), { chatId });
+};
+const currentUser = function () {
+    return Object.assign(Object.assign({}, this.userData()), { oauth: this.oauth });
+};
+UserSchema.methods = {
+    createJWT,
+    getChatsIds,
+    updateSelf,
+    userData,
+    friendData,
+    currentUser,
+};
 const User = (mongoose.models.User || mongoose.model("User", UserSchema));
+const removeFriendStream = User.watch([
+    {
+        $match: {
+            operationType: "update",
+            "updateDescription.updatedFields.receivedFriendRequests": { $exists: true },
+        },
+    },
+    {
+        $project: {
+            updatedDocumentId: "$documentKey._id",
+            addedFriends: {
+                $setDifference: ["$updateDescription.updatedFields.receivedFriendRequests", "$fullDocumentBeforeChange.receivedFriendRequests"],
+            },
+        },
+    },
+], { fullDocument: "updateLookup", fullDocumentBeforeChange: "required" });
+removeFriendStream.on("change", change => {
+    console.log(change);
+});
 
 var getUserFromToken = async (token) => {
     if (!token)
@@ -118,6 +165,14 @@ var getUserFromToken = async (token) => {
     return user;
 };
 
+const myOnlineFriends = (io, socket) => {
+    return (data) => {
+        const onlineFriends = [];
+        socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e));
+        return socket.emit("your online friends", onlineFriends);
+    };
+};
+
 const messageFactory = function (partial_message, sender) {
     return {
         sender: sender._id,
@@ -126,8 +181,21 @@ const messageFactory = function (partial_message, sender) {
     };
 };
 
+const sendMessage = (io, socket) => {
+    return async (partialMessage, roomId) => {
+        const chat = await Chat.findOne({ _id: roomId });
+        // fulfil the message properties
+        const message = messageFactory(partialMessage, socket.user);
+        // save the message to the database
+        await chat.pushMessage(message);
+        // push event to all participants in that room, except the sender
+        io.to(roomId).emit("push message", message, roomId);
+    };
+};
+
+var io;
 const AppendWebSockets = (httpServer) => {
-    const io = new Server(httpServer);
+    io = new Server(httpServer);
     io.use(async (socket, next) => {
         try {
             let user = await getUserFromToken(socket.handshake.headers["authorization"].split(" ")[1]);
@@ -147,21 +215,20 @@ const AppendWebSockets = (httpServer) => {
         rooms.forEach(room => socket.join(room));
         socket.join(socket.user._id.toString());
         console.log("new ws connection with: ", socket.user.username);
+        // socket.emit("set sendFriendRequests", socket.user.sentFriendRequests);
+        // socket.emit("set receivedFriendRequests", socket.user.receivedFriendRequests);
         // when users sends a message to a specific room/chat
-        socket.on("send message", async (partial_message, room_id) => {
-            const chat = await Chat.findOne({ _id: room_id });
-            // fulfil the message properties
-            const message = messageFactory(partial_message, socket.user);
-            // save the message to the database
-            await chat.pushMessage(message);
-            // push event to all participants in that room, except the sender
-            io.to(room_id).emit("push message", message, room_id);
-        });
-        socket.on("my online friends", () => {
+        socket.on("send message", sendMessage(io, socket));
+        socket.on("my online friends", myOnlineFriends(io, socket));
+        setInterval(() => {
             const onlineFriends = [];
             socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e));
-            return socket.emit("your online friends", onlineFriends);
-        });
+            socket.emit("set online friends", onlineFriends);
+        }, 5 * 1000);
+        // socket.on("removeFriend", removeFriend(io, socket));
+        // socket.on("sendFriendRequest", sendFriendRequest(io, socket));
+        // socket.on("cancelFriendRequest", cancelFriendRequest(io, socket));
+        // socket.on("acceptFriendRequest", acceptFriendRequest(io, socket));
     });
 };
 
@@ -342,37 +409,10 @@ var register_router = express
     .get("/google", google_register_handler)
     .get("/facebook", facebook_register_handler);
 
-const cancelFriendRequest = async (req, res) => {
-    try {
-        const userId = req.query.userId.toString();
-        // make sure the user is in the friends requests list
-        if (!req.user.sentFriendRequests.map(e => e.userId.toString()).includes(userId))
-            throw new Error(userId + " is not in your Friend Requests List");
-        const user = await User.findById(userId);
-        if (!user)
-            throw new Error(userId + " doesn't exist");
-        await User.findByIdAndUpdate(userId, {
-            $pull: {
-                receivedFriendRequests: { userId: req.user._id },
-            },
-        });
-        const newUserData = await User.findByIdAndUpdate(req.user._id, {
-            $pull: {
-                sentFriendRequests: { userId: userId },
-            },
-        }, { new: true });
-        res.json({ data: newUserData.sentFriendRequests });
-    }
-    catch (e) {
-        console.log(e);
-        res.status(500).json({ error: e });
-    }
-};
-
 dotenv.config();
 const delete_user = async (req, res) => {
     try {
-        await User.deleteOne(req.user._id);
+        await User.findByIdAndDelete(req.user.id);
         res.sendStatus(200);
     }
     catch (e) {
@@ -382,63 +422,170 @@ const delete_user = async (req, res) => {
 
 const get_chats = async (req, res) => {
     try {
-        res.json({ data: await Chat.find({ participants: req.user._id }) });
+        const chats = await Chat.find({ _id: { $in: req.user.friends.map(e => e.chatId) } });
+        res.json({ data: chats.map(c => ({ id: c._id, participants: c.participants, messages: c.messages })) });
     }
     catch (e) {
         res.status(500).json({ error: e });
+    }
+};
+
+dotenv.config();
+const getCurrentUserData = async (req, res) => {
+    res.json({ data: req.user.currentUser() });
+};
+
+dotenv.config();
+const getUsersData = async (req, res) => {
+    try {
+        const usersIds = req.body.usersIds;
+        const users = await User.find({ _id: { $in: usersIds } });
+        users.forEach(user => {
+            if (!user.picture)
+                user.picture = user.oauth.google.picture || "img/blank_profile.png";
+        });
+        return res.json({ data: users });
+    }
+    catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e });
+    }
+};
+
+const acceptFriendRequest = async (req, res) => {
+    try {
+        const userId = req.query.userId.toString();
+        await req.user.updateSelf();
+        // make sure the user is in the friend requests list
+        if (!req.user.receivedFriendRequests.map(e => e.userId.toString()).includes(userId))
+            throw new Error(userId + " is not in your Received Friend Requests List");
+        const newChat = await Chat.create({ participants: [userId, req.user._id] });
+        const requestSenderData = await User.findByIdAndUpdate(userId, {
+            $pull: {
+                sentFriendRequests: { userId: req.user._id },
+            },
+            $push: {
+                friends: { friendId: req.user._id, chatId: newChat._id },
+            },
+        }, { new: true });
+        const requestAccepterData = await User.findByIdAndUpdate(req.user._id, {
+            $pull: {
+                receivedFriendRequests: { userId: userId },
+            },
+            $push: {
+                friends: { friendId: userId, chatId: newChat._id },
+            },
+        }, { new: true });
+        io.to(userId).emit("friend request accepted", requestAccepterData);
+        return res.json({ data: requestSenderData.friendData({ currentUserId: req.user.id }) });
+    }
+    catch (e) {
+        console.log(e);
+    }
+};
+
+const cancelFriendRequest = async (req, res) => {
+    try {
+        const userId = req.query.userId.toString();
+        // make sure the user is in the friends requests list
+        if (!req.user.sentFriendRequests.map(e => e.userId.toString()).includes(userId))
+            throw new Error(userId + " is not in your Friend Requests List");
+        const user = await User.findById(userId);
+        if (!user)
+            throw new Error(userId + " doesn't exist");
+        const theOtherUser = await User.findByIdAndUpdate(userId, {
+            $pull: {
+                receivedFriendRequests: { userId: req.user._id },
+            },
+        }, { new: true });
+        const currentUser = await User.findByIdAndUpdate(req.user._id, {
+            $pull: {
+                sentFriendRequests: { userId: userId },
+            },
+        }, { new: true });
+        io.to(userId).emit("friend request canceled", theOtherUser);
+        const request = {
+            friendData: theOtherUser.userData(),
+            sendAt: req.user.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
+        };
+        return res.json({ data: request });
+    }
+    catch (e) {
+        console.log(e);
     }
 };
 
 const get_friends = async (req, res) => {
     try {
-        const users = await User.find({ _id: { $in: req.user.friends.map(f => f.friendId) } });
-        users.forEach(user => {
-            if (!user.picture)
-                user.picture = user.oauth.google.picture || "img/blank_profile.png";
-        });
-        return res.json({ data: users });
-    }
-    catch (e) {
-        res.status(500).json({ error: e });
-    }
-};
-
-const getPedingFriends = async (req, res) => {
-    try {
-        const users = await User.find({ _id: { $in: req.user.receivedFriendRequests.map(f => f.userId) } });
-        users.forEach(user => {
-            if (!user.picture)
-                user.picture = user.oauth.google.picture || "img/blank_profile.png";
-        });
-        return res.json({ data: users });
-    }
-    catch (e) {
-        res.status(500).json({ error: e });
-    }
-};
-
-dotenv.config();
-const get_user_data = async (req, res) => {
-    var _a, _b;
-    if (!req.user.picture)
-        req.user.picture = ((_b = (_a = req.user.oauth) === null || _a === void 0 ? void 0 : _a.google) === null || _b === void 0 ? void 0 : _b.picture) || "img/blank_profile.png";
-    res.json({ data: req.user });
-};
-
-dotenv.config();
-const removeFriend = async (req, res) => {
-    try {
-        const friendId = req.body.friendId;
-        if (!req.user.friends.map(e => e.friendId.toString()).includes(friendId))
-            throw new Error(friendId + " is not in your friends list");
-        const response = await User.updateOne({ _id: req.user._id }, { $pull: { friends: { friendId: friendId } } });
-        if (response.modifiedCount === 0)
-            throw new Error("0 documents where updated");
-        res.sendStatus(200);
+        const friends = await User.find({ _id: { $in: req.user.friends.map(f => f.friendId) } });
+        return res.json({ data: friends.map(f => f.friendData({ currentUserId: req.user._id })) });
     }
     catch (e) {
         console.log(e);
         res.status(500).json({ error: e });
+    }
+};
+
+dotenv.config();
+const getReceivedFriendRequests = async (req, res) => {
+    try {
+        const usersData = await User.find({ _id: { $in: req.user.receivedFriendRequests.map(e => e.userId) } });
+        const friendRequests = usersData.map(u => {
+            return {
+                friendData: u.userData(),
+                receivedAt: req.user.receivedFriendRequests.find(e => e.userId.toString() === u.id).receivedAt,
+            };
+        });
+        res.json({ data: friendRequests });
+    }
+    catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e });
+    }
+};
+
+dotenv.config();
+const getSentFriendRequests = async (req, res) => {
+    try {
+        const usersData = await User.find({ _id: { $in: req.user.sentFriendRequests.map(e => e.userId) } });
+        const friendRequests = usersData.map(u => {
+            return {
+                friendData: u.userData(),
+                sendAt: req.user.sentFriendRequests.find(e => e.userId.toString() === u.id).sentAt,
+            };
+        });
+        res.json({ data: friendRequests });
+    }
+    catch (e) {
+        console.log(e);
+        res.status(500).json({ error: e });
+    }
+};
+
+const rejectFriendRequest = async (req, res) => {
+    try {
+        const userId = req.query.userId.toString();
+        // make sure the user is in the friends requests list
+        if (!req.user.sentFriendRequests.map(e => e.userId.toString()).includes(userId))
+            throw new Error(userId + " is not in your Friend Requests List");
+        const user = await User.findById(userId);
+        if (!user)
+            throw new Error(userId + " doesn't exist");
+        const requestSenderData = await User.findByIdAndUpdate(userId, {
+            $pull: {
+                receivedFriendRequests: { userId: req.user._id },
+            },
+        }, { new: true });
+        const rejecterData = await User.findByIdAndUpdate(req.user.id, {
+            $pull: {
+                sentFriendRequests: { userId: userId },
+            },
+        }, { new: true });
+        io.to(userId).emit("friend request rejected", rejecterData);
+        return res.json({ data: rejecterData.userData() });
+    }
+    catch (e) {
+        console.log(e);
     }
 };
 
@@ -454,15 +601,15 @@ const sendFriendRequest = async (req, res) => {
         const user = await User.findById(userId);
         if (!user)
             throw new Error(userId + " doesn't exist");
-        await User.findByIdAndUpdate(userId, {
+        const receiverData = await User.findByIdAndUpdate(userId, {
             $push: {
                 receivedFriendRequests: {
                     userId: req.user._id,
                     receivedAt: Date.now(),
                 },
             },
-        });
-        const newUserData = await User.findByIdAndUpdate(req.user._id, {
+        }, { new: true });
+        const senderData = await User.findByIdAndUpdate(req.user._id, {
             $push: {
                 sentFriendRequests: {
                     userId: userId,
@@ -470,25 +617,54 @@ const sendFriendRequest = async (req, res) => {
                 },
             },
         }, { new: true });
-        res.json({ data: newUserData.sentFriendRequests });
+        io.to(userId).emit("set CurrentUser", receiverData);
+        const request = {
+            friendData: receiverData.userData(),
+            sendAt: senderData.sentFriendRequests.find(e => e.userId.toString() === receiverData.id).sentAt,
+        };
+        return res.json({ data: request });
     }
     catch (e) {
         console.log(e);
-        res.status(500).json({ error: e });
+    }
+};
+
+const removeFriend = async (req, res) => {
+    try {
+        const friendId = req.query.friendId.toString();
+        if (!req.user.friends.map(e => e.friendId.toString()).includes(friendId))
+            throw new Error(friendId + " is not in your friends list");
+        const receiverData = await User.findByIdAndUpdate(friendId, { $pull: { friends: { friendId: req.user.id } } }, { new: true });
+        const currentUser = await User.findByIdAndUpdate(req.user._id, { $pull: { friends: { friendId: friendId } } }, { new: true });
+        io.to(friendId).emit("friend removed", currentUser);
+        res.json({ data: receiverData });
+    }
+    catch (e) {
+        console.log(e);
     }
 };
 
 dotenv.config();
 var user_router = express
     .Router()
-    .get("/data", get_user_data)
+    //
+    .get("/", getCurrentUserData)
+    .delete("/", delete_user)
+    //
     .get("/friends", get_friends)
-    .get("/pedingFriends", getPedingFriends)
+    .delete("/friends", removeFriend)
+    //
+    .get("/friends/requests/received", getReceivedFriendRequests)
+    .put("/friends/requests/received", acceptFriendRequest)
+    .delete("/friends/requests/received", rejectFriendRequest)
+    //
+    .get("/friends/requests/sent", getSentFriendRequests)
+    .put("/friends/requests/sent", sendFriendRequest)
+    .delete("/friends/requests/sent", cancelFriendRequest)
+    //
     .get("/chats", get_chats)
-    .get("/delete", delete_user)
-    .get("/sendFriendRequest", sendFriendRequest)
-    .get("/cancelFriendRequest", cancelFriendRequest)
-    .post("/removeFriend", removeFriend);
+    //
+    .post("/getUsersData", getUsersData);
 
 const searchGroups = async (req, res) => {
     try {
@@ -529,6 +705,7 @@ const searchUsers = async (req, res) => {
                 },
             },
         ]);
+        usersData[0].data = usersData[0].data.map(e => (Object.assign(Object.assign({}, e), { id: e._id })));
         return res.json(Object.assign({}, usersData[0]));
     }
     catch (e) {

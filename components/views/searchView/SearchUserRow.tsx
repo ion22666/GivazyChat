@@ -1,7 +1,10 @@
 import * as React from "react";
+import { useDispatch } from "react-redux";
 
 import { AppContext } from "../../../pages";
 import { VerdeColor } from "../../../pages/_app";
+import { cancelFriendRequest, friendRequestsSlice, sendFriendRequest, useSentFriendRequests } from "../../../src/features/friendRequestsSlice";
+import { AppDispatch, useMyDispatch } from "../../../src/store";
 import AddUserEmptyIcon from "../../svg/AddUserEmptyIcon";
 import AddUserFillIcon from "../../svg/AddUserFillIcon";
 import DeleteUserIcon from "../../svg/DeleteUserIcon";
@@ -19,34 +22,30 @@ type Props = {
 // closeMenu: inchide meniul cu optiuni pentru acest rand ( asta inchide toate meniurile )
 // openMenu: deshide meniul cu optiuni pentru acest rand
 
-const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
-    const { userData, userFriendsData, setUserData, chats, setActiveChat, isMobile, removeFriend } = React.useContext(AppContext);
+export const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
+    const dispatch = useMyDispatch();
+    const { isMobile } = React.useContext(AppContext);
+    const sentFriendRequests = useSentFriendRequests();
 
-    const menuRef = React.useRef<HTMLDivElement>();
+    const friendRequestAlreadySent: boolean = !!sentFriendRequests.find(e => e.friendData.id === rowData.id);
 
-    if (!rowData || !userFriendsData || !chats) return <div>{"Loading..."}</div>;
-
-    async function sendFriendRequest() {
-        const data = await window.request("api/user/sendFriendRequest?userId=" + rowData._id);
-        const newUserSentFriendRequests = (await data.json()).data;
-        userData.sentFriendRequests = newUserSentFriendRequests;
-        setUserData({ ...userData });
+    async function onClick() {
+        document.body.style.cursor = "progress";
+        document.body.style.position = "none";
+        if (friendRequestAlreadySent) {
+            await dispatch(cancelFriendRequest(rowData.id));
+        } else {
+            await dispatch(sendFriendRequest(rowData.id));
+        }
+        document.body.style.cursor = "auto";
+        document.body.style.position = "auto";
     }
-
-    async function cancelFriendRequest() {
-        const data = await window.request("api/user/cancelFriendRequest?userId=" + rowData._id);
-        const newUserSentFriendRequests = (await data.json()).data;
-        userData.sentFriendRequests = newUserSentFriendRequests;
-        setUserData({ ...userData });
-    }
-
-    const friendRequestAlreadySent: boolean = userData.sentFriendRequests.findIndex(e => e.userId === rowData._id) > -1;
 
     const desktopReturn = (
         // containerul al row, e flex cu justify-between
         <div
             className={
-                "mt-2 flex h-12 w-full flex-row justify-between rounded-md bg-white bg-opacity-5 p-1 shadow-sm shadow-white duration-100 ease-linear hover:bg-opacity-10 hover:shadow hover:shadow-Verde" +
+                "mt-2 flex h-12 w-full flex-row justify-between rounded-md bg-white bg-opacity-5 p-1 shadow-sm shadow-black duration-100 ease-linear hover:bg-opacity-10 hover:shadow hover:shadow-Verde" +
                 " " +
                 "[&:hover_#dots]:text-opacity-100 [&:hover_#hiddenOnParentHover]:hidden [&:hover_#leftSide]:gap-2 [&:hover_#name]:text-Verde [&:hover_#visibleOnParentHover]:block [&>*]:duration-100 [&>*]:ease-linear [&_#visibleOnParentHover]:hidden"
             }
@@ -57,7 +56,7 @@ const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
                 <div className="aspect-square h-full">
                     <img src={rowData.picture} referrerPolicy="no-referrer" className="aspect-square h-full rounded-full" />
                     <div
-                        style={{ backgroundColor: rowData.isOnline ? VerdeColor : "gray" }}
+                        style={{ backgroundColor: "gray" }}
                         className="absolute bottom-0 right-0 box-content aspect-square h-2 translate-x-1/4 translate-y-1/4 rounded-full border-4 border-Gray3"
                     ></div>
                 </div>
@@ -74,7 +73,7 @@ const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
                     className={
                         "flex h-full cursor-pointer items-center gap-2 rounded-full p-1 duration-100 ease-linear hover:bg-white hover:bg-opacity-5 hover:p-2 hover:text-Verde"
                     }
-                    onClick={friendRequestAlreadySent ? cancelFriendRequest : sendFriendRequest}
+                    onClick={onClick}
                 >
                     {friendRequestAlreadySent ? (
                         <>
@@ -110,4 +109,4 @@ const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
     return isMobile ? mobileReturn : desktopReturn;
 };
 
-export default UserRow;
+// export default UserRow;

@@ -8,57 +8,29 @@ import FriendsSection from "../components/views/friendsView/FriendsViewIndex";
 import SearchViewComponent from "../components/views/searchView/SearchViewIndex";
 import SecondSection from "../components/SecondSection";
 import MobileNavbar from "../components/MobileNavbar";
+import { currentUserSlice } from "../src/features/currentUserSlice";
+import { friendsSlice } from "../src/features/friendsSlice";
+import { chatSlice } from "../src/features/chatSlice";
+import { useDispatch } from "react-redux";
+import { friendRequestsSlice } from "../src/features/friendRequestsSlice";
 
-let socket: Socket;
+var socket: Socket;
 
-interface View {
+export interface View {
     name: "chat" | "search" | "friends";
     Component: React.FunctionComponent<any>;
 }
 
 interface AppContext {
-    userData: global.UserData | undefined;
-    setUserData: React.Dispatch<global.UserData>;
-    chats: global.Chat[] | undefined;
-    setChats: React.Dispatch<global.Chat[]>;
-    activeChat: global.Chat | undefined;
-    setActiveChat: React.Dispatch<global.Chat>;
-    activeView: View["name"] | undefined;
+    activeView: View["name"];
     setActiveView: React.Dispatch<View["name"]>;
-    userFriendsData: global.UserData[] | undefined;
-    setUserFriendsData: React.Dispatch<global.UserData[]>;
-    forceReRenderChat: () => void;
-    removeFriend: (friendId: string) => Promise<void>;
-    socket: Socket;
-    isMobile: boolean;
     searchViewInput: string;
     setSearchViewInput: React.Dispatch<string>;
+    socket: Socket;
+    isMobile: boolean;
 }
 
 const InitialAppContext: Partial<AppContext> = {
-    forceReRenderChat(this: AppContext) {
-        // 1. find the index of the activeChat in the chats array
-        const index = this.chats.findIndex(c => c._id === this.activeChat._id);
-        // 2. create a clone of that chat ( we suppose activeChat = chats[index] )
-        const chatClone = Object.assign({}, this.chats[index]);
-        // 3. replace the old chat
-        this.chats[index] = chatClone;
-        // 4. trigger the re-render
-        this.setActiveChat(chatClone);
-    },
-    async removeFriend(this: AppContext, friendId: string) {
-        const response = await window.request("/api/user/removeFriend", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ friendId }),
-        });
-
-        if (!response.ok) {
-            return alert(response.statusText);
-        }
-        const friendDataIndex = this.userFriendsData.findIndex(e => e._id === friendId);
-        this.setUserFriendsData(this.userFriendsData.splice(friendDataIndex));
-    },
     socket,
 };
 
@@ -80,15 +52,11 @@ const views: View[] = [
 ];
 
 function HomePage() {
-    const [userData, setUserData] = React.useState<any>();
-    const [userFriendsData, setUserFriendsData] = React.useState<any>();
-    const [chats, setChats] = React.useState<any>();
-    const [activeChat, setActiveChat] = React.useState<any>();
+    const dispatch = useDispatch();
     const [activeView, setActiveView] = React.useState<any>("friends");
-    const [searchViewInput, setSearchViewInput] = React.useState<any>("");
-
     const [isMobile, setIsMobile] = React.useState<any>(true);
-
+    const [searchViewInput, setSearchViewInput] = React.useState<string>("");
+    // facem conexiunea la serverul web socket
     React.useEffect(() => {
         socket = io({
             autoConnect: false,
@@ -96,50 +64,73 @@ function HomePage() {
                 Authorization: `Bearer ${localStorage.getItem("token")}`,
             },
         });
+
+        socket.on("set online friends", data => friendsSlice.actions.setOnlineFriends(data));
+        socket.on("push message", (message, chatId) => dispatch(chatSlice.actions.pushMessage({ message, chatId })));
+        socket.on("friend removed", friendData => dispatch(friendsSlice.actions.removeFriend(friendData)));
+
+        {
+            // friendData este ala care a dat accept
+            socket.on("friend request accepted", friendData => {
+                dispatch(friendRequestsSlice.actions.removeSentRequest(friendData.id));
+                dispatch(friendsSlice.actions.addFriend(friendData));
+            });
+            // userData este ala care a dat reject
+            socket.on("friend request rejected", userData => {
+                dispatch(friendRequestsSlice.actions.removeSentRequest(userData.id));
+            });
+        }
         socket.connect();
     }, []);
 
     React.useEffect(() => {
         setIsMobile(window.matchMedia("(max-aspect-ratio: 1/1)").matches);
         window.matchMedia("(max-aspect-ratio: 1/1)").onchange = e => setIsMobile(e.matches);
+
+        (async () => {
+            const json_body = await (await window.request("/api/user")).json();
+            if (json_body.error) alert(json_body.error);
+            if (json_body.data) dispatch(currentUserSlice.actions.setCurrentUserData(json_body.data));
+        })();
+        (async () => {
+            const json_body = await (await window.request("/api/user/friends")).json();
+            if (json_body.error) alert(json_body.error);
+            if (json_body.data) dispatch(friendsSlice.actions.setFriends(json_body.data));
+        })();
+        (async () => {
+            const json_body = await (await window.request("/api/user/chats")).json();
+            if (json_body.error) alert(json_body.error);
+            if (json_body.data) dispatch(chatSlice.actions.setChats(json_body.data));
+        })();
+        (async () => {
+            const json_body = await (await window.request("/api/user/friends/requests/sent")).json();
+            if (json_body.error) alert(json_body.error);
+            if (json_body.data) dispatch(friendRequestsSlice.actions.setSentRequests(json_body.data));
+        })();
+        (async () => {
+            const json_body = await (await window.request("/api/user/friends/requests/received")).json();
+            if (json_body.error) alert(json_body.error);
+            if (json_body.data) dispatch(friendRequestsSlice.actions.setReceivedRequests(json_body.data));
+        })();
     }, []);
 
-    // fetch the api
-    React.useEffect(() => {
-        // fetch user data
-        (async () => {
-            let json_body = await (await window.request("/api/user/data")).json();
-            if (json_body.error) alert(json_body.error);
-            if (json_body.data) setUserData(json_body.data);
-        })();
-        // fetch user's friends data
-        (async () => {
-            let json_body = await (await window.request("/api/user/friends")).json();
-            if (json_body.error) alert(json_body.error);
-            if (json_body.data) setUserFriendsData(json_body.data);
-        })();
-        // fetch user's chats data
-        (async () => {
-            let json_body = await (await window.request("/api/user/chats")).json();
-            if (json_body.error) alert(json_body.error);
-            if (json_body.data) setChats(json_body.data);
-        })();
-    }, []);
+    async function fetchUsersData(usersIds: string[]): Promise<any> {
+        const jsonRespone = await window.request("/api/user/getUsersData", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ usersIds }),
+        });
+        return (await jsonRespone.json()).data;
+    }
 
     const AppContextValue: AppContext = {
         ...(InitialAppContext as AppContext),
-        userData,
-        setUserData,
-        chats,
-        setChats,
-        activeChat,
-        setActiveChat,
-        activeView,
-        setActiveView,
-        userFriendsData,
-        setUserFriendsData,
         socket,
         isMobile,
+        activeView,
+        setActiveView,
         searchViewInput,
         setSearchViewInput,
     };

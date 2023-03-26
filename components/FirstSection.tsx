@@ -9,13 +9,12 @@ import HomeIcon from "./svg/Home";
 import SearchIcon from "./svg/Search";
 import FriendIcon from "./svg/Friend";
 import ChatBubbleIcon from "./svg/ChatBubble";
+import { useDispatch } from "react-redux";
+import { useCurrentUser } from "../src/features/currentUserSlice";
 
 const FirstSection: React.FunctionComponent = () => {
-    const { userData, userFriendsData, chats, setActiveChat, setActiveView, isMobile } = React.useContext(AppContext);
-
-    if (!(userData && userFriendsData && chats)) {
-        return <div></div>;
-    }
+    const dispatch = useDispatch();
+    const { setActiveView, isMobile } = React.useContext(AppContext);
 
     function logoutUser() {
         window.token = undefined;
