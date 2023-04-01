@@ -5,13 +5,21 @@ import jwt from "jsonwebtoken";
 
 import mongoose from "../database/mongodb";
 import { Chat } from "./chatModel";
+import { messageFactory } from "./../utils/messageFactory";
+const uniqueNonNullIndex = {
+    unique: true,
+    index: {
+        unique: true,
+        partialFilterExpression: { $this: { $type: "string" } },
+    },
+};
 
 const UserSchema = new mongoose.Schema({
     email: {
         type: String,
         unique: true,
         sparse: true,
-        default: null,
+        default: undefined,
     },
     username: {
         type: String,
@@ -52,7 +60,11 @@ const UserSchema = new mongoose.Schema({
         google: {
             type: {
                 id: { type: String },
-                email: { type: String, unique: true, sparse: true },
+                email: {
+                    type: String,
+                    sparse: true,
+                    default: undefined,
+                },
                 verified_email: { type: String },
                 name: { type: String },
                 given_name: { type: String },
@@ -75,7 +87,7 @@ const createJWT: global.User["createJWT"] = function (this: UserDocument): strin
     return jwt.sign({ sub: this._id } as global.JWT, process.env.JWT_PRIVETE_KEY || "givazy", { algorithm: "HS256" });
 };
 const getChatsIds: global.User["getChatsIds"] = async function (this: UserDocument): Promise<string[]> {
-    return (await Chat.find({ participants: this._id }, { _id: 1 })).map(e => e._id.toString());
+    return this.friends.map(e => e.chatId.toString());
 };
 const updateSelf: global.User["updateSelf"] = async function (this: UserDocument): Promise<void> {
     const updatedUser = await User.findById(this._id);
@@ -89,8 +101,8 @@ const userData: global.User["userData"] = function (this: UserDocument): global.
         picture: this.picture,
     };
 };
-const friendData: global.User["friendData"] = function (this: UserDocument, { currentUserId, chatId }): global.FriendData {
-    chatId = chatId ? chatId : this.friends.find(f => f.friendId.toString() === currentUserId.toString()).chatId;
+const friendData: global.User["friendData"] = function (this: UserDocument, { friendId, chatId }): global.FriendData {
+    chatId = chatId ? chatId : this.friends.find(f => f.friendId.toString() === friendId.toString()).chatId;
     return {
         ...this.userData(),
         chatId,
@@ -103,6 +115,19 @@ const currentUser: global.User["currentUser"] = function (this: UserDocument): g
     };
 };
 
+const sendMessage: global.User["sendMessage"] = async function (this: UserDocument, chatId, partialMessage) {
+    const message = messageFactory(partialMessage, this);
+    await Chat.findByIdAndUpdate(chatId, {
+        $push: {
+            messages: {
+                $each: [message],
+                $position: 0,
+            },
+        },
+    });
+    return message;
+};
+
 UserSchema.methods = {
     createJWT,
     getChatsIds,
@@ -110,6 +135,7 @@ UserSchema.methods = {
     userData,
     friendData,
     currentUser,
+    sendMessage,
 };
 
 export const User = (mongoose.models.User || mongoose.model("User", UserSchema)) as mongoose.Model<global.User, mongoose.Document>;

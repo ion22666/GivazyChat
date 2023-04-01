@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import { StorageState } from "../store";
+import { acceptFriendRequest } from "./friendRequestsSlice";
 
 const initialState: StorageState["friendsSlice"] = {
     friends: [],
@@ -12,8 +13,6 @@ export const removeFriend = createAsyncThunk<string, string>("friends/removeFrie
     if (!response.ok) throw new Error("nu sa sters friendul");
     return friendId;
 });
-
-
 
 export const friendsSlice = createSlice({
     name: "friends",
@@ -33,9 +32,13 @@ export const friendsSlice = createSlice({
         },
     },
     extraReducers: builder => {
-        builder.addCase(removeFriend.fulfilled, (state, { payload }) => {
-            state.friends = state.friends.filter(f => f.id !== payload);
-        });
+        builder
+            .addCase(removeFriend.fulfilled, (state, { payload }) => {
+                state.friends = state.friends.filter(f => f.id !== payload);
+            })
+            .addCase(acceptFriendRequest.fulfilled, (state, { payload }) => {
+                state.friends.unshift(payload.friendData);
+            });
     },
 });
 

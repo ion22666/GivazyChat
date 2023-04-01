@@ -1,9 +1,8 @@
 import { WsHandler } from "../ws-server";
 
 export const myOnlineFriends: WsHandler = (io, socket) => {
-    return (data: any) => {
-        const onlineFriends = [];
-        socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e));
-        return socket.emit("your online friends", onlineFriends);
-    };
+    const onlineFriends: string[] = [];
+    socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e.friendId));
+    socket.emit("set online friends", onlineFriends);
+    return () => 0;
 };

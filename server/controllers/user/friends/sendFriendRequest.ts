@@ -14,7 +14,7 @@ export const sendFriendRequest: Handler = async (req, res) => {
         const user = await User.findById(userId);
         if (!user) throw new Error(userId + " doesn't exist");
 
-        const receiverData = await User.findByIdAndUpdate(
+        const theOtherUser = await User.findByIdAndUpdate(
             userId,
             {
                 $push: {
@@ -26,7 +26,7 @@ export const sendFriendRequest: Handler = async (req, res) => {
             },
             { new: true }
         );
-        const senderData = await User.findByIdAndUpdate(
+        const currentUser = await User.findByIdAndUpdate(
             req.user._id,
             {
                 $push: {
@@ -39,10 +39,13 @@ export const sendFriendRequest: Handler = async (req, res) => {
             { new: true }
         );
 
-        io.to(userId).emit("set CurrentUser", receiverData);
+        io.to(userId).emit("friend request received", {
+            friendData: currentUser.userData(),
+            sendAt: currentUser.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
+        });
         const request: global.sentFriendRequests = {
-            friendData: receiverData.userData(),
-            sendAt: senderData.sentFriendRequests.find(e => e.userId.toString() === receiverData.id).sentAt,
+            friendData: theOtherUser.userData(),
+            sendAt: currentUser.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
         };
         return res.json({ data: request });
     } catch (e) {

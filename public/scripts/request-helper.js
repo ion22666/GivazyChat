@@ -16,6 +16,14 @@
         arg[1].redirect = "manual";
         return fetch(...arg);
     };
+    window.requestJson = function (...arg) {
+        if (!arg[1]) arg.push({});
+        if (!arg[1].headers) arg[1].headers = {};
+        arg[1].headers["Authorization"] = "Bearer " + (window.token || localStorage.getItem("token") || "");
+        arg[1].headers["Content-Type"] = "application/json";
+        arg[1].redirect = "manual";
+        return fetch(...arg);
+    };
     // verificam daca in localstorage exista un toke doar atunci cand se acceseaza index/home pageul
     if (!(window.location.pathname === "/")) return;
 

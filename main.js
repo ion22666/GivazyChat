@@ -21,19 +21,37 @@ mongoose.set("strictQuery", true);
 const MongoConnectionPromise = mongoose.connect(`mongodb+srv://${config.USERNAME}:${config.PASSWORD}@cluster0.wgurxzm.mongodb.net/${config.DATABASE}?retryWrites=true&w=majority`);
 
 const ChatSchema = new mongoose.Schema({
-    participants: [mongoose.Schema.Types.ObjectId],
+    participants: Array({
+        participantId: mongoose.Schema.Types.ObjectId,
+        lastReadTimestamp: { type: Number, default: 0 },
+    }),
     messages: [
         {
-            sendAt: Number,
+            sendAt: { type: Number, default: () => Date.now() },
             content: String,
             sender: mongoose.Schema.Types.ObjectId,
         },
     ],
 });
 ChatSchema.methods.pushMessage = async function (message) {
-    await this.update({ $push: { messages: message } });
+    await this.update({
+        $push: {
+            messages: {
+                $each: [message],
+                $position: 0,
+            },
+        },
+    });
 };
 const Chat = (mongoose.models.Chat || mongoose.model("Chat", ChatSchema));
+
+const messageFactory = function (partial_message, sender) {
+    return {
+        sender: sender._id,
+        sendAt: Date.now(),
+        content: partial_message.content,
+    };
+};
 
 dotenv.config();
 const UserSchema = new mongoose.Schema({
@@ -41,7 +59,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         unique: true,
         sparse: true,
-        default: null,
+        default: undefined,
     },
     username: {
         type: String,
@@ -82,7 +100,11 @@ const UserSchema = new mongoose.Schema({
         google: {
             type: {
                 id: { type: String },
-                email: { type: String, unique: true, sparse: true },
+                email: {
+                    type: String,
+                    sparse: true,
+                    default: undefined,
+                },
                 verified_email: { type: String },
                 name: { type: String },
                 given_name: { type: String },
@@ -102,7 +124,7 @@ const createJWT = function () {
     return jwt.sign({ sub: this._id }, process.env.JWT_PRIVETE_KEY || "givazy", { algorithm: "HS256" });
 };
 const getChatsIds = async function () {
-    return (await Chat.find({ participants: this._id }, { _id: 1 })).map(e => e._id.toString());
+    return this.friends.map(e => e.chatId.toString());
 };
 const updateSelf = async function () {
     const updatedUser = await User.findById(this._id);
@@ -117,12 +139,24 @@ const userData = function () {
         picture: this.picture,
     };
 };
-const friendData = function ({ currentUserId, chatId }) {
-    chatId = chatId ? chatId : this.friends.find(f => f.friendId.toString() === currentUserId.toString()).chatId;
+const friendData = function ({ friendId, chatId }) {
+    chatId = chatId ? chatId : this.friends.find(f => f.friendId.toString() === friendId.toString()).chatId;
     return Object.assign(Object.assign({}, this.userData()), { chatId });
 };
 const currentUser = function () {
     return Object.assign(Object.assign({}, this.userData()), { oauth: this.oauth });
+};
+const sendMessage$1 = async function (chatId, partialMessage) {
+    const message = messageFactory(partialMessage, this);
+    await Chat.findByIdAndUpdate(chatId, {
+        $push: {
+            messages: {
+                $each: [message],
+                $position: 0,
+            },
+        },
+    });
+    return message;
 };
 UserSchema.methods = {
     createJWT,
@@ -131,6 +165,7 @@ UserSchema.methods = {
     userData,
     friendData,
     currentUser,
+    sendMessage: sendMessage$1,
 };
 const User = (mongoose.models.User || mongoose.model("User", UserSchema));
 const removeFriendStream = User.watch([
@@ -166,30 +201,18 @@ var getUserFromToken = async (token) => {
 };
 
 const myOnlineFriends = (io, socket) => {
-    return (data) => {
-        const onlineFriends = [];
-        socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e));
-        return socket.emit("your online friends", onlineFriends);
-    };
+    const onlineFriends = [];
+    socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e.friendId));
+    socket.emit("set online friends", onlineFriends);
+    return () => 0;
 };
 
-const messageFactory = function (partial_message, sender) {
-    return {
-        sender: sender._id,
-        sendAt: Date.now(),
-        content: partial_message.content,
-    };
-};
-
-const sendMessage = (io, socket) => {
-    return async (partialMessage, roomId) => {
-        const chat = await Chat.findOne({ _id: roomId });
-        // fulfil the message properties
-        const message = messageFactory(partialMessage, socket.user);
-        // save the message to the database
-        await chat.pushMessage(message);
-        // push event to all participants in that room, except the sender
-        io.to(roomId).emit("push message", message, roomId);
+const updateLastReadMessageTimeStamp = (io, socket) => {
+    return async (chatId, participantId) => {
+        participantId = socket.user.id;
+        await Chat.updateOne({ _id: chatId, "participants.participantId": participantId }, {
+            $set: { "participants.$.lastReadTimestamp": Date.now() },
+        });
     };
 };
 
@@ -215,20 +238,15 @@ const AppendWebSockets = (httpServer) => {
         rooms.forEach(room => socket.join(room));
         socket.join(socket.user._id.toString());
         console.log("new ws connection with: ", socket.user.username);
+        console.log("his rooms: ", rooms);
         // socket.emit("set sendFriendRequests", socket.user.sentFriendRequests);
         // socket.emit("set receivedFriendRequests", socket.user.receivedFriendRequests);
-        // when users sends a message to a specific room/chat
-        socket.on("send message", sendMessage(io, socket));
         socket.on("my online friends", myOnlineFriends(io, socket));
+        socket.on("update last read message timestamp", updateLastReadMessageTimeStamp(io, socket));
+        myOnlineFriends(io, socket);
         setInterval(() => {
-            const onlineFriends = [];
-            socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e));
-            socket.emit("set online friends", onlineFriends);
+            myOnlineFriends(io, socket);
         }, 5 * 1000);
-        // socket.on("removeFriend", removeFriend(io, socket));
-        // socket.on("sendFriendRequest", sendFriendRequest(io, socket));
-        // socket.on("cancelFriendRequest", cancelFriendRequest(io, socket));
-        // socket.on("acceptFriendRequest", acceptFriendRequest(io, socket));
     });
 };
 
@@ -452,15 +470,22 @@ const getUsersData = async (req, res) => {
     }
 };
 
+async function chatCreator(users) {
+    const participants = users.map(u => ({
+        participantId: u.id,
+        lastReadTimestamp: 0,
+    }));
+    return await Chat.create({ participants });
+}
 const acceptFriendRequest = async (req, res) => {
     try {
         const userId = req.query.userId.toString();
-        await req.user.updateSelf();
         // make sure the user is in the friend requests list
         if (!req.user.receivedFriendRequests.map(e => e.userId.toString()).includes(userId))
             throw new Error(userId + " is not in your Received Friend Requests List");
-        const newChat = await Chat.create({ participants: [userId, req.user._id] });
-        const requestSenderData = await User.findByIdAndUpdate(userId, {
+        const theOtherUser = await User.findById(userId);
+        const newChat = await chatCreator([theOtherUser, req.user]);
+        await theOtherUser.updateOne({
             $pull: {
                 sentFriendRequests: { userId: req.user._id },
             },
@@ -468,7 +493,7 @@ const acceptFriendRequest = async (req, res) => {
                 friends: { friendId: req.user._id, chatId: newChat._id },
             },
         }, { new: true });
-        const requestAccepterData = await User.findByIdAndUpdate(req.user._id, {
+        await req.user.updateOne({
             $pull: {
                 receivedFriendRequests: { userId: userId },
             },
@@ -476,11 +501,23 @@ const acceptFriendRequest = async (req, res) => {
                 friends: { friendId: userId, chatId: newChat._id },
             },
         }, { new: true });
-        io.to(userId).emit("friend request accepted", requestAccepterData);
-        return res.json({ data: requestSenderData.friendData({ currentUserId: req.user.id }) });
+        const WsResponse = {
+            data: {
+                friendData: req.user.friendData({ chatId: newChat.id }),
+                chatData: newChat,
+            },
+        };
+        io.to(userId).emit("friend request accepted", WsResponse);
+        return res.json({
+            data: {
+                friendData: theOtherUser.friendData({ chatId: newChat.id }),
+                chatData: newChat,
+            },
+        });
     }
     catch (e) {
         console.log(e);
+        return res.json({ error: e });
     }
 };
 
@@ -503,12 +540,19 @@ const cancelFriendRequest = async (req, res) => {
                 sentFriendRequests: { userId: userId },
             },
         }, { new: true });
-        io.to(userId).emit("friend request canceled", theOtherUser);
-        const request = {
-            friendData: theOtherUser.userData(),
-            sendAt: req.user.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
+        const requestTimestamp = req.user.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt;
+        const receivedRequest = {
+            data: {
+                friendData: theOtherUser.userData(),
+                receivedAt: requestTimestamp,
+            },
         };
-        return res.json({ data: request });
+        io.to(userId).emit("friend request canceled", receivedRequest);
+        const sentRequest = {
+            friendData: theOtherUser.userData(),
+            sendAt: requestTimestamp,
+        };
+        return res.json({ data: sentRequest });
     }
     catch (e) {
         console.log(e);
@@ -518,7 +562,7 @@ const cancelFriendRequest = async (req, res) => {
 const get_friends = async (req, res) => {
     try {
         const friends = await User.find({ _id: { $in: req.user.friends.map(f => f.friendId) } });
-        return res.json({ data: friends.map(f => f.friendData({ currentUserId: req.user._id })) });
+        return res.json({ data: friends.map(f => f.friendData({ friendId: req.user._id })) });
     }
     catch (e) {
         console.log(e);
@@ -571,6 +615,7 @@ const rejectFriendRequest = async (req, res) => {
         const user = await User.findById(userId);
         if (!user)
             throw new Error(userId + " doesn't exist");
+        const requestTimeStamp = req.user.receivedFriendRequests.find(e => e.userId === userId).receivedAt;
         const requestSenderData = await User.findByIdAndUpdate(userId, {
             $pull: {
                 receivedFriendRequests: { userId: req.user._id },
@@ -581,11 +626,23 @@ const rejectFriendRequest = async (req, res) => {
                 sentFriendRequests: { userId: userId },
             },
         }, { new: true });
-        io.to(userId).emit("friend request rejected", rejecterData);
-        return res.json({ data: rejecterData.userData() });
+        const wsResponse = {
+            data: {
+                sendAt: requestTimeStamp,
+                friendData: rejecterData.userData(),
+            },
+        };
+        io.to(userId).emit("friend request rejected", wsResponse);
+        return res.json({
+            data: {
+                friendData: rejecterData.userData(),
+                receivedAt: requestTimeStamp,
+            },
+        });
     }
     catch (e) {
         console.log(e);
+        return res.json({ error: e });
     }
 };
 
@@ -601,7 +658,7 @@ const sendFriendRequest = async (req, res) => {
         const user = await User.findById(userId);
         if (!user)
             throw new Error(userId + " doesn't exist");
-        const receiverData = await User.findByIdAndUpdate(userId, {
+        const theOtherUser = await User.findByIdAndUpdate(userId, {
             $push: {
                 receivedFriendRequests: {
                     userId: req.user._id,
@@ -609,7 +666,7 @@ const sendFriendRequest = async (req, res) => {
                 },
             },
         }, { new: true });
-        const senderData = await User.findByIdAndUpdate(req.user._id, {
+        const currentUser = await User.findByIdAndUpdate(req.user._id, {
             $push: {
                 sentFriendRequests: {
                     userId: userId,
@@ -617,10 +674,13 @@ const sendFriendRequest = async (req, res) => {
                 },
             },
         }, { new: true });
-        io.to(userId).emit("set CurrentUser", receiverData);
+        io.to(userId).emit("friend request received", {
+            friendData: currentUser.userData(),
+            sendAt: currentUser.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
+        });
         const request = {
-            friendData: receiverData.userData(),
-            sendAt: senderData.sentFriendRequests.find(e => e.userId.toString() === receiverData.id).sentAt,
+            friendData: theOtherUser.userData(),
+            sendAt: currentUser.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
         };
         return res.json({ data: request });
     }
@@ -634,10 +694,11 @@ const removeFriend = async (req, res) => {
         const friendId = req.query.friendId.toString();
         if (!req.user.friends.map(e => e.friendId.toString()).includes(friendId))
             throw new Error(friendId + " is not in your friends list");
-        const receiverData = await User.findByIdAndUpdate(friendId, { $pull: { friends: { friendId: req.user.id } } }, { new: true });
-        const currentUser = await User.findByIdAndUpdate(req.user._id, { $pull: { friends: { friendId: friendId } } }, { new: true });
-        io.to(friendId).emit("friend removed", currentUser);
-        res.json({ data: receiverData });
+        const receiverData = await User.findByIdAndUpdate(friendId, { $pull: { friends: { friendId: req.user.id } } });
+        const currentUser = await User.findByIdAndUpdate(req.user._id, { $pull: { friends: { friendId: friendId } } });
+        const wsResponse = { data: currentUser.friendData({ friendId: receiverData.id }) };
+        io.to(friendId).emit("friend removed", wsResponse);
+        res.json({ data: receiverData.friendData({ friendId: currentUser.id }) });
     }
     catch (e) {
         console.log(e);
@@ -717,6 +778,25 @@ const searchUsers = async (req, res) => {
 dotenv.config();
 var searchRouter = express.Router().get("/users", searchUsers).get("/groups", searchGroups);
 
+const sendMessage = async (req, res) => {
+    try {
+        const { chatId } = req.params;
+        const { partialMessage } = req.body;
+        if (!(chatId || partialMessage))
+            throw new Error("chatId or partialMessage missing");
+        const message = await req.user.sendMessage(chatId, partialMessage);
+        // push event to all participants in that room, except the sender
+        io.except(req.user.id).to(chatId).emit("push message", message, chatId);
+        return res.json({ data: message });
+    }
+    catch (error) {
+        console.log(error);
+        return res.json({ error });
+    }
+};
+
+var chatRouter = express.Router().post("/:chatId/messages", sendMessage);
+
 dotenv.config();
 const dev = process.env.NODE_ENV !== "production";
 const hostname = dev ? "localhost" : "0.0.0.0";
@@ -761,6 +841,7 @@ AppendWebSockets(httpServer);
         expressApp.use("/api/test-token", (req, res) => res.sendStatus(200));
         expressApp.use("/api/user", user_router);
         expressApp.use("/api/search", searchRouter);
+        expressApp.use("/api/chat", chatRouter);
     }
     httpServer.listen(port, hostname, () => {
         console.log(`>>> Ready on http://${hostname}:${port}`);

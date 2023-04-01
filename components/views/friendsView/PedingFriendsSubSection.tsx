@@ -3,12 +3,14 @@ import { useDispatch } from "react-redux";
 
 import { AppContext } from "../../../pages";
 import { VerdeColor } from "../../../pages/_app";
-import { friendRequestsSlice, useReceivedFriendRequests } from "../../../src/features/friendRequestsSlice";
+import { acceptFriendRequest, friendRequestsSlice, useReceivedFriendRequests, useSentFriendRequests } from "../../../src/features/friendRequestsSlice";
 import { friendsSlice, useOnlineFriendsIds } from "../../../src/features/friendsSlice";
+import { useMyDispatch } from "../../../src/store";
 import ChatSquareIconFill from "../../svg/ChatSquareFillIcon";
 import ChatSquareIcon from "../../svg/ChatSquareIcon";
 import PersonCheckEmptyIcon from "../../svg/PersonCheckEmptyIcon";
 import PersonCheckFillIcon from "../../svg/PersonCheckFillIcon";
+import PersonUpEmptyIcon from "../../svg/PersonUpEmptyIcon";
 import VerticalDotsIcon from "../../svg/VerticalDotsIcon";
 import SearchComponent from "./FriendsSearchBar";
 
@@ -17,26 +19,36 @@ type Props = {
     isOnline: boolean;
 };
 
-
-
 const PendingFriends: React.FunctionComponent = props => {
     const receivedFriendRequests = useReceivedFriendRequests();
+    const sentFriendRequests = useSentFriendRequests();
+    const [activeRequests, setActiveRequests] = React.useState<"Received" | "Sent">("Received");
+    const requests = activeRequests === "Received" ? receivedFriendRequests : sentFriendRequests;
     const onlineFriendsIds = useOnlineFriendsIds();
 
-    const [onScreenRequests, setOnScreenRequests] = React.useState<global.receivedFriendRequests[]>(null);
+    const [onScreenRequests, setOnScreenRequests] = React.useState<(global.sentFriendRequests | global.receivedFriendRequests)[]>(null);
 
+    function changeRequestsType() {
+        setActiveRequests(e => (e === "Received" ? "Sent" : "Received"));
+    }
     const desktopReturn = (
         <div {...props} className="flex h-full w-full flex-col gap-2">
-            <SearchComponent<global.receivedFriendRequests>
-                nativeState={receivedFriendRequests}
+            <SearchComponent<global.receivedFriendRequests | global.sentFriendRequests>
+                nativeState={requests}
                 setState={setOnScreenRequests}
                 filter={(text, e) => e.friendData.username.toLowerCase().includes(text.toLowerCase())}
             />
 
-            <div>{`Total - ${receivedFriendRequests.length}`}</div>
+            {/* elementu de unde shimbi intre sent and received requests */}
+            <div onClick={changeRequestsType} className={"flex w-fit cursor-pointer items-center gap-1 rounded-full bg-Verde p-1 text-black"}>
+                {activeRequests}
+                {activeRequests === "Received" ? <PersonUpEmptyIcon className={"h-8"} /> : <PersonUpEmptyIcon className={"h-8"} />}
+            </div>
+
+            <div>{`Total - ${requests.length}`}</div>
 
             <div className="flex-gro block w-full [&>*]:mt-2">
-                {(onScreenRequests || receivedFriendRequests).map(request => {
+                {(onScreenRequests || requests).map(request => {
                     const isOnline = !!onlineFriendsIds.find(id => id === request.friendData.id);
                     return <PendingUserRow userData={request.friendData} isOnline={isOnline} />;
                 })}
@@ -50,19 +62,14 @@ const PendingFriends: React.FunctionComponent = props => {
 export default PendingFriends;
 
 function PendingUserRow({ userData, isOnline }: Props) {
-    const dispatch = useDispatch();
+    const dispatch = useMyDispatch();
 
-    async function acceptFriendRequest(userId: string) {
-        const response = await window.request("/api/user/friends/requests/received?userId=" + userId, { method: "PUT" });
-        const friendData: global.FriendData = (await response.json()).data;
-        dispatch(friendRequestsSlice.actions.removeReceivedRequest(friendData.id));
-        dispatch(friendsSlice.actions.addFriend(friendData));
+    function acceptClickHandler(userId: string) {
+        dispatch(acceptFriendRequest(userId));
     }
 
-    async function rejectFriendRequest(userId: string) {
-        const response = await window.request("/api/user/friends/requests/received?userId=" + userId, { method: "DELETE" });
-        const friendData: global.FriendData = (await response.json()).data;
-        dispatch(friendRequestsSlice.actions.removeReceivedRequest(friendData.id));
+    async function rejectClickHandler(userId: string) {
+        dispatch(acceptFriendRequest(userId));
     }
 
     // containerul al row, e flex cu justify-between
@@ -100,7 +107,7 @@ function PendingUserRow({ userData, isOnline }: Props) {
                         " " +
                         "[&:hover_>*]:text-Verde"
                     }
-                    onClick={() => acceptFriendRequest(userData.id)}
+                    onClick={() => acceptClickHandler(userData.id)}
                 >
                     <PersonCheckEmptyIcon id="hiddenOnParentHover" className="h-full text-white text-opacity-10" />
                     <PersonCheckFillIcon id="visibleOnParentHover" className="h-full text-white hover:text-Verde" />

@@ -2,6 +2,8 @@ import { Handler } from "express";
 import { User } from "../../../models/userModel";
 import { io } from "../../../ws-server";
 
+export type RejectFriendRequestApiResponse = global.ApiResponse<global.sentFriendRequests | global.receivedFriendRequests>;
+
 export const rejectFriendRequest: Handler = async (req, res) => {
     try {
         const userId: string = req.query.userId.toString();
@@ -11,6 +13,8 @@ export const rejectFriendRequest: Handler = async (req, res) => {
 
         const user = await User.findById(userId);
         if (!user) throw new Error(userId + " doesn't exist");
+        
+        const requestTimeStamp = req.user.receivedFriendRequests.find(e => e.userId === userId).receivedAt;
 
         const requestSenderData = await User.findByIdAndUpdate(
             userId,
@@ -30,9 +34,23 @@ export const rejectFriendRequest: Handler = async (req, res) => {
             },
             { new: true }
         );
-        io.to(userId).emit("friend request rejected", rejecterData);
-        return res.json({ data: rejecterData.userData() });
+
+        const wsResponse: RejectFriendRequestApiResponse = {
+            data: {
+                sendAt: requestTimeStamp,
+                friendData: rejecterData.userData(),
+            },
+        };
+
+        io.to(userId).emit("friend request rejected", wsResponse);
+        return res.json({
+            data: {
+                friendData: rejecterData.userData(),
+                receivedAt: requestTimeStamp,
+            },
+        } as RejectFriendRequestApiResponse);
     } catch (e) {
         console.log(e);
+        return res.json({ error: e });
     }
 };

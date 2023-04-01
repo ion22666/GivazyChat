@@ -2,8 +2,14 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import { StorageState } from "../store";
 
-const initialState: StorageState["currentUser"] = {
-    data: undefined,
+type State = {
+    data: global.CurrentUser;
+};
+
+const initialState: State = {
+    data: {
+        id: undefined,
+    },
 };
 
 export const currentUserSlice = createSlice({

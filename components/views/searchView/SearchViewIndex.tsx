@@ -8,7 +8,7 @@ import PersonIcon from "../../svg/PersonIcon";
 import SearchIcon from "../../svg/Search";
 import ExclamationIcon from "../../svg/ExclamationIcon";
 import { useDispatch } from "react-redux";
-import { searchSlice, useActiveCategory } from "../../../src/features/searchSlice";
+import { searchSlice, useActiveCategory, useSearchInput } from "../../../src/features/searchSlice";
 
 type SearchCategory = {
     name: "Users" | "Groups";

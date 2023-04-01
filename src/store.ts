@@ -5,6 +5,7 @@ import { currentUserSlice } from "./features/currentUserSlice";
 import { friendRequestsSlice } from "./features/friendRequestsSlice";
 import { friendsSlice } from "./features/friendsSlice";
 import { searchSlice } from "./features/searchSlice";
+import { createLogger } from "redux-logger";
 
 export type StorageState = {
     currentUser: {
@@ -38,11 +39,7 @@ export const store = configureStore({
     middleware: getDefaultMiddleware =>
         getDefaultMiddleware({
             serializableCheck: false,
-        }).concat(store => next => action => {
-            const result = next(action);
-            console.log(store.getState());
-            return result;
-        }),
+        }).concat(createLogger()),
 });
 export type AppDispatch = typeof store.dispatch;
 export const useMyDispatch = () => useDispatch<AppDispatch>();

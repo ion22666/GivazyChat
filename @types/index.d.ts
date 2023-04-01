@@ -34,13 +34,14 @@ declare namespace global {
         getChatsIds(): Promise<string[]>;
         updateSelf(): Promise<void>;
         currentUser(): CurrentUser;
-        friendData(currentUserId: { currentUserId: string }): FriendData;
+        friendData(friendId: { friendId: string }): FriendData;
         friendData(chatId: { chatId: string }): FriendData;
         userData(): UserData;
+        sendMessage(chatId: string, partialMessage: global.PartialMessage): Promise<global.Message>;
     }
 
     interface UserData {
-        id: stirng;
+        id: string;
         email?: string;
         username?: string;
         picture?: string;
@@ -86,9 +87,16 @@ declare namespace global {
     interface Chat {
         _id: string;
         id: string;
-        participants: string[] | Types.ObjectId[];
+        participants: {
+            participantId: string;
+            lastReadTimestamp: number;
+        }[];
         messages: Message[];
         pushMessage(message: Message): Promise<void>;
+    }
+    interface ApiResponse<T> {
+        data?: T;
+        error?: string;
     }
 }
 
@@ -101,5 +109,6 @@ declare namespace Express {
 interface Window {
     token: string | undefined;
     request: typeof fetch;
+    requestJson: typeof fetch;
     getGoogleRedirectLink(path: stirng): string;
 }

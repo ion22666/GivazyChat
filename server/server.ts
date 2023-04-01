@@ -13,6 +13,7 @@ import register_router from "./routers/registerRouter";
 import user_router from "./routers/userRouter";
 import { MongoConnectionPromise } from "./database/mongodb";
 import searchRouter from "./routers/searchRouter";
+import chatRouter from "./routers/chatRouter";
 
 dotenv.config();
 
@@ -69,6 +70,7 @@ AppendWebSockets(httpServer);
         expressApp.use("/api/test-token", (req, res) => res.sendStatus(200));
         expressApp.use("/api/user", user_router);
         expressApp.use("/api/search", searchRouter);
+        expressApp.use("/api/chat", chatRouter);
     }
 
     httpServer.listen(port, hostname, () => {

@@ -2,6 +2,8 @@ import { Handler } from "express";
 import { User } from "../../../models/userModel";
 import { io } from "../../../ws-server";
 
+export type CancelFriendRequestApiResponse = global.ApiResponse<global.receivedFriendRequests | global.sentFriendRequests>;
+
 export const cancelFriendRequest: Handler = async (req, res) => {
     try {
         const userId: string = req.query.userId.toString();
@@ -30,13 +32,23 @@ export const cancelFriendRequest: Handler = async (req, res) => {
             },
             { new: true }
         );
-        io.to(userId).emit("friend request canceled", theOtherUser);
 
-        const request: global.sentFriendRequests = {
-            friendData: theOtherUser.userData(),
-            sendAt: req.user.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
+        const requestTimestamp = req.user.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt;
+
+        const receivedRequest: CancelFriendRequestApiResponse = {
+            data: {
+                friendData: theOtherUser.userData(),
+                receivedAt: requestTimestamp,
+            },
         };
-        return res.json({ data: request });
+
+        io.to(userId).emit("friend request canceled", receivedRequest);
+
+        const sentRequest: global.sentFriendRequests = {
+            friendData: theOtherUser.userData(),
+            sendAt: requestTimestamp,
+        };
+        return res.json({ data: sentRequest } as CancelFriendRequestApiResponse);
     } catch (e) {
         console.log(e);
     }

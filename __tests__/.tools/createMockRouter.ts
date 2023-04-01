@@ -1,4 +1,4 @@
-import { NextRouter } from "next/router";
+zenimport { NextRouter } from "next/router";
 
 export default function (router: Partial<NextRouter>): NextRouter {
     return {

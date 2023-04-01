@@ -3,17 +3,29 @@ import { io } from "../../../ws-server";
 import { Chat } from "../../../models/chatModel";
 import { User } from "../../../models/userModel";
 
+async function chatCreator(users: [global.User, global.User]): Promise<global.Chat> {
+    const participants = users.map(u => ({
+        participantId: u.id,
+        lastReadTimestamp: 0,
+    }));
+    return await Chat.create({ participants });
+}
+export type AcceptFriendRequestApiResponse = global.ApiResponse<{
+    friendData: global.FriendData;
+    chatData: global.Chat;
+}>;
+
 export const acceptFriendRequest: Handler = async (req, res) => {
     try {
         const userId: string = req.query.userId.toString();
-        await req.user.updateSelf();
         // make sure the user is in the friend requests list
         if (!req.user.receivedFriendRequests.map(e => e.userId.toString()).includes(userId)) throw new Error(userId + " is not in your Received Friend Requests List");
 
-        const newChat = await Chat.create({ participants: [userId, req.user._id] });
+        const theOtherUser = await User.findById(userId);
 
-        const requestSenderData = await User.findByIdAndUpdate(
-            userId,
+        const newChat = await chatCreator([theOtherUser, req.user]);
+
+        await theOtherUser.updateOne(
             {
                 $pull: {
                     sentFriendRequests: { userId: req.user._id },
@@ -24,8 +36,8 @@ export const acceptFriendRequest: Handler = async (req, res) => {
             },
             { new: true }
         );
-        const requestAccepterData = await User.findByIdAndUpdate(
-            req.user._id,
+
+        await (req.user as typeof theOtherUser).updateOne(
             {
                 $pull: {
                     receivedFriendRequests: { userId: userId },
@@ -37,9 +49,23 @@ export const acceptFriendRequest: Handler = async (req, res) => {
             { new: true }
         );
 
-        io.to(userId).emit("friend request accepted", requestAccepterData);
-        return res.json({ data: requestSenderData.friendData({ currentUserId: req.user.id }) });
+        const WsResponse: AcceptFriendRequestApiResponse = {
+            data: {
+                friendData: req.user.friendData({ chatId: newChat.id }),
+                chatData: newChat,
+            },
+        };
+
+        io.to(userId).emit("friend request accepted", WsResponse);
+
+        return res.json({
+            data: {
+                friendData: theOtherUser.friendData({ chatId: newChat.id }),
+                chatData: newChat,
+            },
+        } as AcceptFriendRequestApiResponse);
     } catch (e) {
         console.log(e);
+        return res.json({ error: e });
     }
 };

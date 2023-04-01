@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import getUserFromToken from "./utils/getUserFromToken";
 import { myOnlineFriends } from "./ws-handlers/myOnlineFriends";
-import { sendMessage } from "./ws-handlers/sendMessage";
+import { updateLastReadMessageTimeStamp } from "./ws-handlers/updateLastReadMessageTimeStamp";
 
 export interface CustomSocket extends Socket {
     user: global.User;
@@ -31,25 +31,19 @@ export const AppendWebSockets = (httpServer: any) => {
         socket.join(socket.user._id.toString());
 
         console.log("new ws connection with: ", socket.user.username);
+        console.log("his rooms: ", rooms);
 
         // socket.emit("set sendFriendRequests", socket.user.sentFriendRequests);
         // socket.emit("set receivedFriendRequests", socket.user.receivedFriendRequests);
 
-        // when users sends a message to a specific room/chat
-        socket.on("send message", sendMessage(io, socket));
-
         socket.on("my online friends", myOnlineFriends(io, socket));
 
-        setInterval(() => {
-            const onlineFriends = [];
-            socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e));
-            socket.emit("set online friends", onlineFriends);
-        }, 5 * 1000);
+        socket.on("update last read message timestamp", updateLastReadMessageTimeStamp(io, socket));
 
-        // socket.on("removeFriend", removeFriend(io, socket));
-        // socket.on("sendFriendRequest", sendFriendRequest(io, socket));
-        // socket.on("cancelFriendRequest", cancelFriendRequest(io, socket));
-        // socket.on("acceptFriendRequest", acceptFriendRequest(io, socket));
+        myOnlineFriends(io, socket);
+        setInterval(() => {
+            myOnlineFriends(io, socket);
+        }, 5 * 1000);
     });
 };
 
