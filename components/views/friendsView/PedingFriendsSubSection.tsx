@@ -39,13 +39,16 @@ const PendingFriends: React.FunctionComponent = props => {
                 filter={(text, e) => e.friendData.username.toLowerCase().includes(text.toLowerCase())}
             />
 
-            {/* elementu de unde shimbi intre sent and received requests */}
-            <div onClick={changeRequestsType} className={"flex w-fit cursor-pointer items-center gap-1 rounded-full bg-Verde p-1 text-black"}>
-                {activeRequests}
-                {activeRequests === "Received" ? <PersonUpEmptyIcon className={"h-8"} /> : <PersonUpEmptyIcon className={"h-8"} />}
-            </div>
+            <div className="wrapper flex justify-between">
+                {/* elementu de unde shimbi intre sent and received requests */}
+                <div onClick={changeRequestsType} className={" flex w-fit cursor-pointer flex-row-reverse items-center gap-1 rounded-md bg-Verde p-2 text-black"}>
+                    {activeRequests}
+                    {activeRequests === "Received" ? <PersonUpEmptyIcon className={"h-8"} /> : <PersonUpEmptyIcon className={"h-8"} />}
+                </div>
 
-            <div>{`Total - ${requests.length}`}</div>
+                {/* textul `total` de langa butonul recevied */}
+                <div className="p-2 text-lg font-normal ">{`Total - ${requests.length}`}</div>
+            </div>
 
             <div className="flex-gro block w-full [&>*]:mt-2">
                 {(onScreenRequests || requests).map(request => {

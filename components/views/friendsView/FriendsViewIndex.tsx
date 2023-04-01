@@ -47,7 +47,7 @@ const FriendsSection: React.FunctionComponent = () => {
 
     const desktopReturn = (
         <div className="flex h-full w-full flex-col gap-2">
-            <div className="flex h-16 w-full flex-row items-center gap-2 rounded-lg bg-white bg-opacity-10 p-2 text-white [&>*]:mx-1  [&>*]:font-Whyte-Book [&>*]:text-2xl">
+            <div className="flex h-14 w-full flex-row items-center gap-2 rounded-lg bg-white bg-opacity-10 p-2 text-white [&>*]:mx-1  [&>*]:font-Whyte-Book [&>*]:text-2xl">
                 <div className="flex-wrow flex cursor-default items-center gap-1 border-r-2 border-white border-opacity-40">
                     <span>
                         <FriendIcon className="aspect-square h-6" />
