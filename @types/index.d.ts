@@ -13,15 +13,12 @@ declare namespace global {
     }
 
     interface User {
+        //
         id: string;
         _id: string;
         email?: string;
         username?: string;
         password?: string;
-        picture?: string;
-        friends: { friendId: string; chatId: string }[];
-        receivedFriendRequests: { userId: string; receivedAt: number }[];
-        sentFriendRequests: { userId: string; sentAt: number }[];
         oauth?: {
             google?: GoogleUserInfo;
             microsoft?: {
@@ -29,6 +26,23 @@ declare namespace global {
                 profile: string;
             };
         };
+        //
+        picture?: string;
+        registeredAt: number;
+        aboutMe: string;
+        profileColors: string[];
+        location: string;
+        lastSeenAt: number;
+        socialMediaLinks: {
+            instagram?: string;
+            facebook?: string;
+            discord?: string;
+            reddit?: string;
+        };
+        //
+        friends: { friendId: string; chatId: string }[];
+        receivedFriendRequests: { userId: string; receivedAt: number }[];
+        sentFriendRequests: { userId: string; sentAt: number }[];
 
         createJWT(): string;
         getChatsIds(): Promise<string[]>;
@@ -45,6 +59,17 @@ declare namespace global {
         email?: string;
         username?: string;
         picture?: string;
+        registeredAt: number;
+        aboutMe: string;
+        profileColors: string[];
+        location: string;
+        lastSeenAt: number;
+        socialMediaLinks: {
+            instagram?: string;
+            facebook?: string;
+            discord?: string;
+            reddit?: string;
+        };
     }
 
     interface FriendData extends UserData {

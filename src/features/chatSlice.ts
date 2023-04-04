@@ -5,7 +5,12 @@ import { SendMessageApiResponse } from "../../server/controllers/chat/sendMessag
 import { StorageState, store, StoreState } from "../store";
 import { acceptFriendRequest } from "./friendRequestsSlice";
 
-const initialState: StorageState["chatSlice"] = {
+type State = {
+    activeChatId: string;
+    chats: global.Chat[];
+};
+
+const initialState: State = {
     activeChatId: undefined,
     chats: [],
 };
@@ -19,6 +24,7 @@ export const updateLastReadMessageTimeStamp = createAsyncThunk(
 );
 
 export const sendMessage = createAsyncThunk("chat/sendMessage", async ({ partialMessage, chatId }: { partialMessage: global.PartialMessage; chatId: string }, { getState }) => {
+    if (!partialMessage || !chatId) return;
     return await window
         .requestJson(`/api/chat/${chatId}/messages`, {
             method: "POST",
@@ -39,7 +45,7 @@ export const chatSlice = createSlice({
             state.chats = action.payload;
         },
         addChat: (state, action: PayloadAction<global.Chat>) => {
-            state.chats.push(action.payload);
+            !state.chats.find(e => e.id === action.payload.id) && state.chats.push(action.payload);
         },
         removeChat: (state, action: PayloadAction<global.Chat>) => {
             state.chats = state.chats.filter(c => c !== action.payload);
@@ -81,7 +87,16 @@ const activeChatSelector = createSelector(
     }
 );
 
+const activeChatFriendSelector = createSelector(activeChatSelector, activeChat => {
+    if (!activeChat) return;
+    const currentUserId = (store.getState() as StoreState).currentUser.data.id;
+    const friends = (store.getState() as StoreState).friendsSlice.friends;
+    const friendId = activeChat.participants.find(e => e.participantId !== currentUserId).participantId;
+    return friends.find(e => e.id === friendId);
+});
+
 export const useActiveChat = () => useSelector<StoreState, global.Chat>(activeChatSelector);
+export const useActiveChatFriend = () => useSelector<StoreState, global.FriendData>(activeChatFriendSelector);
 
 export const useActiveChatId = () => {
     return useSelector<StorageState, string>(({ chatSlice }) => chatSlice.activeChatId);
@@ -91,30 +106,54 @@ export const useAvailableChats = () => {
     return useSelector<StorageState, string[]>(({ chatSlice }) => chatSlice.chats.map(e => e.id || e._id));
 };
 
-const ureadMessagesSelector = createSelector([(state: StorageState) => state.chatSlice.chats, (state: StorageState) => state.currentUser.data.id], (chats, currentUserId) => {
-    if (!currentUserId) return 0;
-    let totalCount = 0;
+const unreadMessagesSelector = createSelector([(state: StorageState) => state.chatSlice.chats, (state: StorageState) => state.currentUser.data.id], (chats, currentUserId) => {
+    const result: {
+        chatId: string;
+        unredMessages: {
+            participantId: string;
+            count: number;
+        }[];
+    }[] = [];
+    if (!currentUserId) return result;
     chats.forEach(chat => {
-        let counter = 0;
-        const lastReadTimestamp = chat.participants.find(e => e.participantId === currentUserId).lastReadTimestamp;
-        if (!lastReadTimestamp === undefined) return;
-        while (chat.messages.length > counter && chat.messages[counter].sendAt > lastReadTimestamp) {
-            counter++;
-        }
-        totalCount += counter;
+        const element: (typeof result)[0] = {
+            chatId: chat.id,
+            unredMessages: [],
+        };
+        chat.participants.forEach(({ participantId, lastReadTimestamp }) => {
+            let counter = 0;
+            while (chat.messages.length > counter && chat.messages[counter].sendAt > lastReadTimestamp) {
+                counter++;
+            }
+            element.unredMessages.push({ participantId, count: counter });
+        });
+        result.push(element);
     });
 
-    return totalCount;
+    return result;
 });
-export const useUreadMessages = () => useSelector<any, number>(ureadMessagesSelector);
+export const useUnreadMessages = () => useSelector(unreadMessagesSelector);
 
-const unredMessagesCount = createSelector(activeChatSelector, (activeChat): number => {
+const totalUnredMessagesForCurrentUserSelector = createSelector(unreadMessagesSelector, ureadMessages => {
     const currentUserId = store.getState().currentUser.data.id;
-    const lastReadTimestamp = activeChat.participants.find(e => e.participantId === currentUserId).lastReadTimestamp;
     let counter = 0;
-    while (activeChat.messages.length > counter && activeChat.messages[counter].sendAt > lastReadTimestamp) {
-        counter++;
-    }
+    ureadMessages.map(e => {
+        e.unredMessages.map(({ participantId, count }) => {
+            if (participantId === currentUserId) counter += count;
+        });
+    });
     return counter;
 });
-export const useUnredMessagesCount = () => useSelector<any, number>(unredMessagesCount);
+
+export const useTotalUnredMessagesForCurrentUser = () => useSelector(totalUnredMessagesForCurrentUserSelector);
+
+const unredMessagesForChatSelector = createSelector(
+    unreadMessagesSelector,
+    (state: StoreState, chatId: string) => chatId,
+    (ureadMessages, chatId) => {
+        const currentUserId = store.getState().currentUser.data.id;
+        return ureadMessages.find(e => e.chatId === chatId)?.unredMessages.find(f => f.participantId === currentUserId)?.count;
+    }
+);
+
+export const useUnredMessagesForChat = (chatId: string) => useSelector(() => unredMessagesForChatSelector(store.getState() as any, chatId));

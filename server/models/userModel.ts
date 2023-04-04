@@ -14,7 +14,7 @@ const uniqueNonNullIndex = {
     },
 };
 
-const UserSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema<global.User>({
     email: {
         type: String,
         unique: true,
@@ -79,6 +79,17 @@ const UserSchema = new mongoose.Schema({
             default: null,
         },
     },
+    registeredAt: { type: Number, default: () => Date.now() },
+    lastSeenAt: { type: Number, default: () => Date.now() },
+    aboutMe: { type: String, default: "" },
+    profileColors: { type: Array(String), default: ["#000000", "#ffffff", "#000000"] },
+    location: { type: String, default: "" },
+    socialMediaLinks: {
+        instagram: { type: String, default: "" },
+        facebook: { type: String, default: "" },
+        discord: { type: String, default: "" },
+        reddit: { type: String, default: "" },
+    },
 });
 
 type UserDocument = global.User & mongoose.Document;
@@ -99,6 +110,12 @@ const userData: global.User["userData"] = function (this: UserDocument): global.
         email: this.email,
         username: this.username,
         picture: this.picture,
+        registeredAt: this.registeredAt,
+        aboutMe: this.aboutMe,
+        profileColors: this.profileColors,
+        location: this.location,
+        lastSeenAt: this.lastSeenAt,
+        socialMediaLinks: this.socialMediaLinks,
     };
 };
 const friendData: global.User["friendData"] = function (this: UserDocument, { friendId, chatId }): global.FriendData {

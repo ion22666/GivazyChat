@@ -51,9 +51,9 @@ function SearchViewComponent() {
     const { isMobile, searchViewInput, setSearchViewInput } = React.useContext(AppContext);
     const [activeSearchCategory, setActiveSearchCategory] = React.useState<SearchCategory>(searchCategories[0]);
     const [isSearching, setIsSearching] = React.useState<boolean>(null);
-
+    // 
     const ActiveRowBuilder = activeSearchCategory.RowBuilderComponent;
-
+    // 
     const isEmptyWarning = !isSearching && !searchViewInput.trim() && !activeSearchCategory.rowsData.length;
     const noDataFound = !isSearching && activeSearchCategory.matchFound === 0 && !isEmptyWarning;
     const thereIsMoreToFetch = activeSearchCategory.rowsData.length < activeSearchCategory.matchFound;
@@ -68,10 +68,6 @@ function SearchViewComponent() {
         let timeoutId = setTimeout(updateCategoryRowsData, 200);
         return () => clearTimeout(timeoutId);
     }, [searchViewInput]);
-
-    React.useEffect(() => {
-        console.log(activeSearchCategory);
-    }, [activeSearchCategory]);
 
     async function updateCategoryRowsData(category = activeSearchCategory) {
         const cleanedInput = searchViewInput.trim().replace("#", "");
@@ -116,7 +112,7 @@ function SearchViewComponent() {
     }
 
     const desktopReturn = (
-        <div className="flex h-full w-full flex-col rounded-md px-2">
+        <div className="flex h-full w-full flex-col rounded-md">
             {/* search bar component */}
             <div className="flex w-full justify-center rounded-t-lg bg-Verde bg-opacity-75 py-4">
                 <div className="flex h-12 min-w-[90%] flex-row items-center gap-1 rounded-md bg-Gray2 px-2 py-1">

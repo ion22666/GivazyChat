@@ -6,6 +6,7 @@ import { friendRequestsSlice } from "./features/friendRequestsSlice";
 import { friendsSlice } from "./features/friendsSlice";
 import { searchSlice } from "./features/searchSlice";
 import { createLogger } from "redux-logger";
+import { userProfileSlice } from "./features/userProfileSlice";
 
 export type StorageState = {
     currentUser: {
@@ -35,11 +36,12 @@ export const store = configureStore({
         friendsSlice: friendsSlice.reducer,
         friendRequests: friendRequestsSlice.reducer,
         search: searchSlice.reducer,
+        userProfile: userProfileSlice.reducer,
     },
     middleware: getDefaultMiddleware =>
         getDefaultMiddleware({
             serializableCheck: false,
-        }).concat(createLogger()),
+        }).concat(createLogger({ predicate: (getState, action) => !action.type.includes("friends/setOnlineFriends") })),
 });
 export type AppDispatch = typeof store.dispatch;
 export const useMyDispatch = () => useDispatch<AppDispatch>();

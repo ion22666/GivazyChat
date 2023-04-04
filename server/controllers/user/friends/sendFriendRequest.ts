@@ -41,7 +41,7 @@ export const sendFriendRequest: Handler = async (req, res) => {
 
         io.to(userId).emit("friend request received", {
             friendData: currentUser.userData(),
-            sendAt: currentUser.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
+            receivedAt: currentUser.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
         });
         const request: global.sentFriendRequests = {
             friendData: theOtherUser.userData(),

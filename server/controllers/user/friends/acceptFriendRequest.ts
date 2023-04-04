@@ -48,20 +48,22 @@ export const acceptFriendRequest: Handler = async (req, res) => {
             },
             { new: true }
         );
-
+        const chatData: any = { id: newChat._id, participants: newChat.participants, messages: newChat.messages };
         const WsResponse: AcceptFriendRequestApiResponse = {
             data: {
                 friendData: req.user.friendData({ chatId: newChat.id }),
-                chatData: newChat,
+                chatData,
             },
         };
 
         io.to(userId).emit("friend request accepted", WsResponse);
+        io.to(userId).socketsJoin(newChat.id);
+        io.to(req.user.id).socketsJoin(newChat.id);
 
         return res.json({
             data: {
                 friendData: theOtherUser.friendData({ chatId: newChat.id }),
-                chatData: newChat,
+                chatData,
             },
         } as AcceptFriendRequestApiResponse);
     } catch (e) {

@@ -36,14 +36,14 @@ export const AppendWebSockets = (httpServer: any) => {
         // socket.emit("set sendFriendRequests", socket.user.sentFriendRequests);
         // socket.emit("set receivedFriendRequests", socket.user.receivedFriendRequests);
 
-        socket.on("my online friends", myOnlineFriends(io, socket));
+        socket.on("my online friends", () => myOnlineFriends(io, socket));
 
         socket.on("update last read message timestamp", updateLastReadMessageTimeStamp(io, socket));
 
         myOnlineFriends(io, socket);
-        setInterval(() => {
-            myOnlineFriends(io, socket);
-        }, 5 * 1000);
+        // setInterval(() => {
+        //     myOnlineFriends(io, socket);
+        // }, 5 * 1000);
     });
 };
 

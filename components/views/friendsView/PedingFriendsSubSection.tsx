@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 
 import { AppContext } from "../../../pages";
 import { VerdeColor } from "../../../pages/_app";
-import { acceptFriendRequest, friendRequestsSlice, useReceivedFriendRequests, useSentFriendRequests } from "../../../src/features/friendRequestsSlice";
+import { acceptFriendRequest, cancelFriendRequest, rejectFriendRequest, useReceivedFriendRequests, useSentFriendRequests } from "../../../src/features/friendRequestsSlice";
 import { friendsSlice, useOnlineFriendsIds } from "../../../src/features/friendsSlice";
 import { useMyDispatch } from "../../../src/store";
 import ChatSquareIconFill from "../../svg/ChatSquareFillIcon";
@@ -13,11 +13,8 @@ import PersonCheckFillIcon from "../../svg/PersonCheckFillIcon";
 import PersonUpEmptyIcon from "../../svg/PersonUpEmptyIcon";
 import VerticalDotsIcon from "../../svg/VerticalDotsIcon";
 import SearchComponent from "./FriendsSearchBar";
-
-type Props = {
-    userData: global.UserData;
-    isOnline: boolean;
-};
+import PersonDownEmptyIcon from "../../svg/PersonDownEmptyIcon";
+import DeleteUserIcon from "../../svg/DeleteUserIcon";
 
 const PendingFriends: React.FunctionComponent = props => {
     const receivedFriendRequests = useReceivedFriendRequests();
@@ -43,7 +40,7 @@ const PendingFriends: React.FunctionComponent = props => {
                 {/* elementu de unde shimbi intre sent and received requests */}
                 <div onClick={changeRequestsType} className={" flex w-fit cursor-pointer flex-row-reverse items-center gap-1 rounded-md bg-Verde p-2 text-black"}>
                     {activeRequests}
-                    {activeRequests === "Received" ? <PersonUpEmptyIcon className={"h-8"} /> : <PersonUpEmptyIcon className={"h-8"} />}
+                    {activeRequests === "Received" ? <PersonDownEmptyIcon className={"h-8"} /> : <PersonUpEmptyIcon className={"h-8"} />}
                 </div>
 
                 {/* textul `total` de langa butonul recevied */}
@@ -53,7 +50,7 @@ const PendingFriends: React.FunctionComponent = props => {
             <div className="flex-gro block w-full [&>*]:mt-2">
                 {(onScreenRequests || requests).map(request => {
                     const isOnline = !!onlineFriendsIds.find(id => id === request.friendData.id);
-                    return <PendingUserRow userData={request.friendData} isOnline={isOnline} />;
+                    return <PendingUserRow key={request.friendData.id} request={request} isOnline={isOnline} />;
                 })}
             </div>
         </div>
@@ -64,21 +61,23 @@ const PendingFriends: React.FunctionComponent = props => {
 
 export default PendingFriends;
 
-function PendingUserRow({ userData, isOnline }: Props) {
+type Props = {
+    request: global.receivedFriendRequests | global.sentFriendRequests;
+    isOnline: boolean;
+};
+
+function PendingUserRow({ request, isOnline }: Props) {
     const dispatch = useMyDispatch();
 
-    function acceptClickHandler(userId: string) {
-        dispatch(acceptFriendRequest(userId));
-    }
-
-    async function rejectClickHandler(userId: string) {
-        dispatch(acceptFriendRequest(userId));
-    }
+    /** indica faptul daca requestul este din categoria 'sent friend requests' **/
+    const isSentRequestType = !!(request as global.sentFriendRequests).sendAt;
+    console.log("request", request);
+    const userId = request.friendData.id;
 
     // containerul al row, e flex cu justify-between
     return (
         <div
-            key={userData.id}
+            key={request.friendData.id}
             className={
                 "mt-2 flex h-12 w-full flex-row justify-between rounded-md bg-white bg-opacity-5 p-1 shadow-sm shadow-black duration-100 ease-linear hover:bg-opacity-10 hover:shadow hover:shadow-Verde" +
                 " " +
@@ -89,31 +88,54 @@ function PendingUserRow({ userData, isOnline }: Props) {
             <div id="leftSide" className="flex h-full  flex-row items-center gap-4 p-1">
                 {/* poza si markul de online/offline */}
                 <div className="aspect-square h-full">
-                    <img src={userData.picture} referrerPolicy="no-referrer" className="aspect-square h-full rounded-full" />
-                    <div
-                        style={{ backgroundColor: isOnline ? VerdeColor : "gray" }}
-                        className="absolute bottom-0 right-0 box-content aspect-square h-2 translate-x-1/4 translate-y-1/4 rounded-full border-4 border-Gray3"
-                    ></div>
+                    <img src={request.friendData.picture} referrerPolicy="no-referrer" className="aspect-square h-full rounded-full" />
                 </div>
                 {/* numele la user */}
                 <div id="name" className="text-xl text-white">
-                    {userData.username}
+                    {request.friendData.username}
                 </div>
             </div>
 
             {/* containerul din partea dreapta */}
             <div className="flex h-full px-2">
                 {/* containerul la iconita cu add friend */}
+                {!isSentRequestType && (
+                    <div
+                        className={
+                            "flex h-full cursor-pointer items-center gap-2 rounded-full p-1 duration-100 ease-linear hover:bg-white hover:bg-opacity-5 hover:p-2 hover:text-Crimson" +
+                            " " +
+                            "[&:hover_>*]:text-Verde"
+                        }
+                        onClick={() => dispatch(acceptFriendRequest(userId))}
+                    >
+                        {/* accept */}
+                        <>
+                            <PersonCheckEmptyIcon id="hiddenOnParentHover" className="h-full text-white text-opacity-10" />
+                            <PersonCheckFillIcon id="visibleOnParentHover" className="h-full text-white hover:text-Verde" />
+                        </>
+                    </div>
+                )}
                 <div
                     className={
-                        "flex h-full cursor-pointer items-center gap-2 rounded-full p-1 duration-100 ease-linear hover:bg-white hover:bg-opacity-5 hover:p-2 hover:text-Verde" +
+                        "flex h-full cursor-pointer items-center gap-2 rounded-full p-1 duration-100 ease-linear hover:bg-white hover:bg-opacity-5 hover:p-2 hover:text-Crimson" +
                         " " +
-                        "[&:hover_>*]:text-Verde"
+                        "[&:hover_>*]:text-Crimson"
                     }
-                    onClick={() => acceptClickHandler(userData.id)}
+                    onClick={() => (isSentRequestType ? dispatch(cancelFriendRequest(userId)) : dispatch(rejectFriendRequest(userId)))}
                 >
-                    <PersonCheckEmptyIcon id="hiddenOnParentHover" className="h-full text-white text-opacity-10" />
-                    <PersonCheckFillIcon id="visibleOnParentHover" className="h-full text-white hover:text-Verde" />
+                    {isSentRequestType ? (
+                        <>
+                            {/* cancel */}
+                            <DeleteUserIcon id="hiddenOnParentHover" className="h-full text-white text-opacity-10" />
+                            <DeleteUserIcon id="visibleOnParentHover" className="h-full text-white hover:text-Crimson" />
+                        </>
+                    ) : (
+                        <>
+                            {/* reject */}
+                            <DeleteUserIcon id="hiddenOnParentHover" className="h-full text-white text-opacity-10" />
+                            <DeleteUserIcon id="visibleOnParentHover" className="h-full text-white hover:text-Crimson" />
+                        </>
+                    )}
                 </div>
 
                 {/* containerul la iconita cu 3 puncte */}

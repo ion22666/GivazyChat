@@ -12,15 +12,15 @@ import ChatBubbleIcon from "./svg/ChatBubble";
 import { useDispatch } from "react-redux";
 import { useCurrentUser } from "../src/features/currentUserSlice";
 import NumberNotification from "./utils/NumberNotification";
-import { useUreadMessages } from "../src/features/chatSlice";
+import { useTotalUnredMessagesForCurrentUser } from "../src/features/chatSlice";
+import { useReceivedFriendRequestsCount } from "../src/features/friendRequestsSlice";
+import GearFillIcon from "./svg/GearFillIcon";
 
 const FirstSection: React.FunctionComponent = () => {
     const dispatch = useDispatch();
     const { activeView, setActiveView, isMobile } = React.useContext(AppContext);
-    const navBarButtonRef = React.useRef<HTMLDivElement>();
-    const navBarIconRef = React.useRef<HTMLElement>();
-    const ureadMessages = useUreadMessages();
-    const friendRequestsNumber = 0;
+    const totalUnredMessages = useTotalUnredMessagesForCurrentUser();
+    const friendRequestsNumber = useReceivedFriendRequestsCount();
 
     function logoutUser() {
         window.token = undefined;
@@ -44,7 +44,7 @@ const FirstSection: React.FunctionComponent = () => {
                     }`}
                 >
                     <ChatBubbleIcon className={`w-full ${activeView === "chat" ? "text-black" : "text-white"}`} />
-                    {ureadMessages > 0 && <NumberNotification value={ureadMessages} />}
+                    {totalUnredMessages > 0 && <NumberNotification value={totalUnredMessages} />}
                 </div>
                 <div
                     onClick={() => setActiveView("friends")}
@@ -67,11 +67,11 @@ const FirstSection: React.FunctionComponent = () => {
                 <div className="h-1 rounded-full bg-Verde"></div>
             </div>
             <div className="w-full [&>*]:mt-2 ">
-                <div onClick={logoutUser} className="flex aspect-square w-full justify-center rounded-full bg-black p-2 align-middle ">
-                    <LogoutIcon className="w-full overflow-visible text-white duration-100 ease-linear hover:w-10/12 hover:text-Verde" style={{ transform: "translateX(10%)" }} />
-                </div>
-                <div onClick={deleteUser} className="flex aspect-square w-full justify-center rounded-full bg-red-800 p-2 align-middle ">
-                    <TrashIcon className="w-full overflow-visible text-white duration-100 ease-linear hover:w-10/12 hover:text-black" />
+                <div
+                    onClick={() => {}}
+                    className="flex aspect-square w-full cursor-pointer justify-center rounded-full bg-Verde p-2 align-middle hover:bg-white active:brightness-75"
+                >
+                    <GearFillIcon className="w-full overflow-visible text-Gray3 duration-100 ease-linear hover:scale-90 hover:text-Verde" />
                 </div>
             </div>
         </div>

@@ -9,18 +9,18 @@ export const rejectFriendRequest: Handler = async (req, res) => {
         const userId: string = req.query.userId.toString();
 
         // make sure the user is in the friends requests list
-        if (!req.user.sentFriendRequests.map(e => e.userId.toString()).includes(userId)) throw new Error(userId + " is not in your Friend Requests List");
+        if (!req.user.receivedFriendRequests.map(e => e.userId.toString()).includes(userId)) throw new Error(userId + " is not in your Friend Requests List");
 
         const user = await User.findById(userId);
         if (!user) throw new Error(userId + " doesn't exist");
-        
-        const requestTimeStamp = req.user.receivedFriendRequests.find(e => e.userId === userId).receivedAt;
+
+        const requestTimeStamp = req.user.receivedFriendRequests.find(e => e.userId.toString() === userId).receivedAt;
 
         const requestSenderData = await User.findByIdAndUpdate(
             userId,
             {
                 $pull: {
-                    receivedFriendRequests: { userId: req.user._id },
+                    sentFriendRequests: { userId: req.user._id },
                 },
             },
             { new: true }
@@ -29,7 +29,7 @@ export const rejectFriendRequest: Handler = async (req, res) => {
             req.user.id,
             {
                 $pull: {
-                    sentFriendRequests: { userId: userId },
+                    receivedFriendRequests: { userId: userId },
                 },
             },
             { new: true }
@@ -45,7 +45,7 @@ export const rejectFriendRequest: Handler = async (req, res) => {
         io.to(userId).emit("friend request rejected", wsResponse);
         return res.json({
             data: {
-                friendData: rejecterData.userData(),
+                friendData: requestSenderData.userData(),
                 receivedAt: requestTimeStamp,
             },
         } as RejectFriendRequestApiResponse);

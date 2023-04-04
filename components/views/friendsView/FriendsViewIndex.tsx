@@ -9,6 +9,8 @@ import PedingFriends from "./PedingFriendsSubSection";
 import { useDispatch } from "react-redux";
 import { useFriends } from "../../../src/features/friendsSlice";
 import { searchSlice } from "../../../src/features/searchSlice";
+import NumberNotification from "../../utils/NumberNotification";
+import { useReceivedFriendRequestsCount } from "../../../src/features/friendRequestsSlice";
 
 type SubSections = "Online" | "All" | "Pending";
 
@@ -32,7 +34,7 @@ const FriendsSection: React.FunctionComponent = () => {
     const friends = useFriends();
     const { isMobile, setActiveView, searchViewInput } = React.useContext(AppContext);
     const [activeSubSection, setActiveSubSection] = React.useState<SubSections>("Online");
-
+    const receivedFriendRequestsCount = useReceivedFriendRequestsCount();
     const isReady = friends;
 
     if (!isReady) return <div>{"Loading..."}</div>;
@@ -64,6 +66,7 @@ const FriendsSection: React.FunctionComponent = () => {
                             style={{ color: activeSubSection === name ? VerdeColor : "white" }}
                         >
                             {name}
+                            {name === "Pending" && receivedFriendRequestsCount > 0 && <NumberNotification value={receivedFriendRequestsCount} />}
                         </div>
                     );
                 })}

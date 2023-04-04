@@ -178,3 +178,22 @@ body {
         background-position: 50% 36px;
     }
 }
+
+.loader1 {
+    aspect-ratio: 1/1;
+    border: 5px solid #fff;
+    border-bottom-color: rgb(22, 224, 107);
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    animation: rotation 0.8s linear infinite;
+}
+
+@keyframes rotation {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}

@@ -42,7 +42,7 @@ export const friendRequestsSlice = createSlice({
             state.sent = action.payload;
         },
         addReceivedRequest: (state, action: PayloadAction<global.receivedFriendRequests>) => {
-            state.received.unshift(action.payload);
+            !state.received.map(e => e.friendData.id).includes(action.payload.friendData.id) && state.received.unshift(action.payload);
         },
         removeReceivedRequest: (state, { payload }: PayloadAction<global.receivedFriendRequests | string>) => {
             state.received = state.received.filter(f => f.friendData.id !== (typeof payload === "string" ? payload : payload.friendData.id));
@@ -50,7 +50,7 @@ export const friendRequestsSlice = createSlice({
         addSentRequest: (state, action: PayloadAction<global.sentFriendRequests>) => {
             state.sent.push(action.payload);
         },
-        removeSentRequest: (state, {payload}: PayloadAction<global.sentFriendRequests | string>) => {
+        removeSentRequest: (state, { payload }: PayloadAction<global.sentFriendRequests | string>) => {
             state.sent = state.sent.filter(f => f.friendData.id !== (typeof payload === "string" ? payload : payload.friendData.id));
         },
     },
@@ -72,5 +72,6 @@ export const friendRequestsSlice = createSlice({
     },
 });
 
-export const useReceivedFriendRequests = () => useSelector<any, global.receivedFriendRequests[]>((state: StorageState) => state.friendRequests.received);
-export const useSentFriendRequests = () => useSelector<any, global.sentFriendRequests[]>((state: StorageState) => state.friendRequests.sent);
+export const useReceivedFriendRequests = () => useSelector<StorageState, global.receivedFriendRequests[]>(state => state.friendRequests.received);
+export const useSentFriendRequests = () => useSelector<StorageState, global.sentFriendRequests[]>(state => state.friendRequests.sent);
+export const useReceivedFriendRequestsCount = () => useSelector<StorageState, number>(state => state.friendRequests.received.length);

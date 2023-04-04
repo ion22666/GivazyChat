@@ -23,4 +23,13 @@ ChatSchema.methods.pushMessage = async function (this: global.Message & mongoose
         },
     });
 };
+
+// ChatSchema.methods.export = function (this: global.Chat & mongoose.Document): global.Chat {
+//     return {
+//         messages: this.messages,
+//         participants: this.participants,
+//         id:participants: this.id,
+//     };
+// };
+
 export const Chat = (mongoose.models.Chat || mongoose.model("Chat", ChatSchema)) as mongoose.Model<global.Chat, mongoose.Document>;

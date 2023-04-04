@@ -43,6 +43,13 @@ ChatSchema.methods.pushMessage = async function (message) {
         },
     });
 };
+// ChatSchema.methods.export = function (this: global.Chat & mongoose.Document): global.Chat {
+//     return {
+//         messages: this.messages,
+//         participants: this.participants,
+//         id:participants: this.id,
+//     };
+// };
 const Chat = (mongoose.models.Chat || mongoose.model("Chat", ChatSchema));
 
 const messageFactory = function (partial_message, sender) {
@@ -119,6 +126,17 @@ const UserSchema = new mongoose.Schema({
             default: null,
         },
     },
+    registeredAt: { type: Number, default: () => Date.now() },
+    lastSeenAt: { type: Number, default: () => Date.now() },
+    aboutMe: { type: String, default: "" },
+    profileColors: { type: Array(String), default: ["#000000", "#ffffff", "#000000"] },
+    location: { type: String, default: "" },
+    socialMediaLinks: {
+        instagram: { type: String, default: "" },
+        facebook: { type: String, default: "" },
+        discord: { type: String, default: "" },
+        reddit: { type: String, default: "" },
+    },
 });
 const createJWT = function () {
     return jwt.sign({ sub: this._id }, process.env.JWT_PRIVETE_KEY || "givazy", { algorithm: "HS256" });
@@ -137,6 +155,12 @@ const userData = function () {
         email: this.email,
         username: this.username,
         picture: this.picture,
+        registeredAt: this.registeredAt,
+        aboutMe: this.aboutMe,
+        profileColors: this.profileColors,
+        location: this.location,
+        lastSeenAt: this.lastSeenAt,
+        socialMediaLinks: this.socialMediaLinks,
     };
 };
 const friendData = function ({ friendId, chatId }) {
@@ -201,6 +225,7 @@ var getUserFromToken = async (token) => {
 };
 
 const myOnlineFriends = (io, socket) => {
+    socket.user.updateSelf();
     const onlineFriends = [];
     socket.user.friends.forEach(e => io.sockets.adapter.rooms.has(e.friendId.toString()) && onlineFriends.push(e.friendId));
     socket.emit("set online friends", onlineFriends);
@@ -241,12 +266,12 @@ const AppendWebSockets = (httpServer) => {
         console.log("his rooms: ", rooms);
         // socket.emit("set sendFriendRequests", socket.user.sentFriendRequests);
         // socket.emit("set receivedFriendRequests", socket.user.receivedFriendRequests);
-        socket.on("my online friends", myOnlineFriends(io, socket));
+        socket.on("my online friends", () => myOnlineFriends(io, socket));
         socket.on("update last read message timestamp", updateLastReadMessageTimeStamp(io, socket));
         myOnlineFriends(io, socket);
-        setInterval(() => {
-            myOnlineFriends(io, socket);
-        }, 5 * 1000);
+        // setInterval(() => {
+        //     myOnlineFriends(io, socket);
+        // }, 5 * 1000);
     });
 };
 
@@ -501,17 +526,20 @@ const acceptFriendRequest = async (req, res) => {
                 friends: { friendId: userId, chatId: newChat._id },
             },
         }, { new: true });
+        const chatData = { id: newChat._id, participants: newChat.participants, messages: newChat.messages };
         const WsResponse = {
             data: {
                 friendData: req.user.friendData({ chatId: newChat.id }),
-                chatData: newChat,
+                chatData,
             },
         };
         io.to(userId).emit("friend request accepted", WsResponse);
+        io.to(userId).socketsJoin(newChat.id);
+        io.to(req.user.id).socketsJoin(newChat.id);
         return res.json({
             data: {
                 friendData: theOtherUser.friendData({ chatId: newChat.id }),
-                chatData: newChat,
+                chatData,
             },
         });
     }
@@ -610,20 +638,20 @@ const rejectFriendRequest = async (req, res) => {
     try {
         const userId = req.query.userId.toString();
         // make sure the user is in the friends requests list
-        if (!req.user.sentFriendRequests.map(e => e.userId.toString()).includes(userId))
+        if (!req.user.receivedFriendRequests.map(e => e.userId.toString()).includes(userId))
             throw new Error(userId + " is not in your Friend Requests List");
         const user = await User.findById(userId);
         if (!user)
             throw new Error(userId + " doesn't exist");
-        const requestTimeStamp = req.user.receivedFriendRequests.find(e => e.userId === userId).receivedAt;
+        const requestTimeStamp = req.user.receivedFriendRequests.find(e => e.userId.toString() === userId).receivedAt;
         const requestSenderData = await User.findByIdAndUpdate(userId, {
             $pull: {
-                receivedFriendRequests: { userId: req.user._id },
+                sentFriendRequests: { userId: req.user._id },
             },
         }, { new: true });
         const rejecterData = await User.findByIdAndUpdate(req.user.id, {
             $pull: {
-                sentFriendRequests: { userId: userId },
+                receivedFriendRequests: { userId: userId },
             },
         }, { new: true });
         const wsResponse = {
@@ -635,7 +663,7 @@ const rejectFriendRequest = async (req, res) => {
         io.to(userId).emit("friend request rejected", wsResponse);
         return res.json({
             data: {
-                friendData: rejecterData.userData(),
+                friendData: requestSenderData.userData(),
                 receivedAt: requestTimeStamp,
             },
         });
@@ -676,7 +704,7 @@ const sendFriendRequest = async (req, res) => {
         }, { new: true });
         io.to(userId).emit("friend request received", {
             friendData: currentUser.userData(),
-            sendAt: currentUser.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
+            receivedAt: currentUser.sentFriendRequests.find(e => e.userId.toString() === theOtherUser.id).sentAt,
         });
         const request = {
             friendData: theOtherUser.userData(),

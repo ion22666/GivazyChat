@@ -22,7 +22,7 @@ export const friendsSlice = createSlice({
             state.friends = action.payload;
         },
         addFriend: (state, action: PayloadAction<global.FriendData>) => {
-            state.friends.unshift(action.payload);
+            !state.friends.find(e => e.id === action.payload.id) && state.friends.unshift(action.payload);
         },
         removeFriend: (state, action: PayloadAction<string>) => {
             state.friends = state.friends.filter(f => f.id !== action.payload);

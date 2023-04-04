@@ -4,7 +4,7 @@ import { useDispatch } from "react-redux";
 import { AppContext } from "../../../pages";
 import { VerdeColor } from "../../../pages/_app";
 import { chatSlice, useAvailableChats } from "../../../src/features/chatSlice";
-import { friendsSlice, removeFriend, useFriends, useOnlineFriends } from "../../../src/features/friendsSlice";
+import { friendsSlice, removeFriend, useFriends, useOnlineFriends, useOnlineFriendsIds } from "../../../src/features/friendsSlice";
 import ChatSquareIconFill from "../../svg/ChatSquareFillIcon";
 import ChatSquareIcon from "../../svg/ChatSquareIcon";
 import DeleteUserIcon from "../../svg/DeleteUserIcon";
@@ -30,11 +30,11 @@ type Props = {
 const FriendRow: React.FunctionComponent<Props> = ({ friendData, menuIsOpen, closeMenu, openMenu }: Props) => {
     const { setActiveView, isMobile, socket } = React.useContext(AppContext);
     const dispatch = useDispatch();
-    const onlineFriends = useOnlineFriends();
+    const onlineFriendsIds = useOnlineFriendsIds();
     const availableChats = useAvailableChats();
 
     const menuRef = React.useRef<HTMLDivElement>();
-    const isOnline = onlineFriends.find(id => id === friendData.id);
+    const isOnline = onlineFriendsIds.find(id => id === friendData.id);
 
     // cand meniul este deshis , daca userul face click oriunde pe ecran inafara de meniul in sine sau una dintre iconitele cu 3 puncte, atunci se inchide meniul
     React.useEffect(() => {
