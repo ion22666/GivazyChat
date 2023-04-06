@@ -50,3 +50,4 @@ function MyApp({ Component, pageProps }) {
 export default MyApp;
 
 export const VerdeColor = "rgb(22, 224, 107)";
+export const CrimsonColor = "#c22d2d";

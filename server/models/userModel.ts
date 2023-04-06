@@ -85,10 +85,10 @@ const UserSchema = new mongoose.Schema<global.User>({
     profileColors: { type: Array(String), default: ["#000000", "#ffffff", "#000000"] },
     location: { type: String, default: "" },
     socialMediaLinks: {
-        instagram: { type: String, default: "" },
-        facebook: { type: String, default: "" },
-        discord: { type: String, default: "" },
-        reddit: { type: String, default: "" },
+        instagram: { type: { accountName: String, link: String }, default: {} },
+        facebook: { type: { accountName: String, link: String }, default: {} },
+        discord: { type: { accountName: String, link: String }, default: {} },
+        reddit: { type: { accountName: String, link: String }, default: {} },
     },
 });
 

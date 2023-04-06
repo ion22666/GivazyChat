@@ -21,28 +21,50 @@ import { AppContext } from "../../pages";
 import { chatSlice } from "../../src/features/chatSlice";
 import ChatBubbleIcon from "../svg/ChatBubble";
 import VerticalDotsIcon from "../svg/VerticalDotsIcon";
+import IdIcon from "../svg/IdIcon";
+import { copyToClipboard } from "../utils/copyToClipboard";
+import { formatAge, formatDate } from "../utils/formatTime";
+import Icon from "../svg/IconTemplate";
+import { socialMediaAccountNameExtractor } from "../utils/socialMediaAccountNameExtractor";
+import RedditIcon from "../svg/RedditIcon";
+import FacebookIcon from "../svg/FacebookIcon";
+import DiscordIcon from "../svg/DiscordIcon";
+import InstagramIcon from "../svg/InstagramIcon";
+import BoxArrowUpRight from "../svg/BoxArrowUpRight";
+import countriesJson from "../utils/countries.json";
+import VerifiedIcon from "../svg/VerifiedIcon";
+import { CrimsonColor } from "../../pages/_app";
+
+const countries = countriesJson as global.Country[];
+
+type Props = { userData: ReturnType<typeof useProfileUser> };
 
 type ProfileSection = {
     name: "User Info" | "Mutual Friends" | "Mutual Groups";
+    Component: React.FunctionComponent<Props>;
 };
+
 const profileSections: ProfileSection[] = [
     {
         name: "User Info",
+        Component: UserInfoSection,
     },
     {
         name: "Mutual Friends",
+        Component: MutualFriendsSection,
     },
     {
         name: "Mutual Groups",
+        Component: MutualGroupsSection,
     },
 ];
 
-function UserProfile({ userData }: { userData: ReturnType<typeof useProfileUser> }) {
+function UserProfile({ userData }: Props) {
     const dispatch = useMyDispatch();
     const { setActiveView } = React.useContext(AppContext);
     // states
     const containerRef = React.useRef<HTMLDivElement>();
-    const [activeSection, setActiveSection] = React.useState<ProfileSection["name"]>("User Info");
+    const [activeSection, setActiveSection] = React.useState<ProfileSection>(profileSections[0]);
     const friends = useFriends();
     const onlineFriendsIds = useOnlineFriendsIds();
     const sentFriendRequests = useSentFriendRequests();
@@ -50,7 +72,7 @@ function UserProfile({ userData }: { userData: ReturnType<typeof useProfileUser>
     const friendRequestAlreadySent: boolean = !!sentFriendRequests.find(e => e.friendData.id === userData.id);
     const friendRequestAlreadyReceived: boolean = !!receivdFriendRequests.find(e => e.friendData.id === userData.id);
 
-    const [color1, color2, color3] = userData.profileColors || ["#f00f0f", "#00fff0", "#000000"];
+    const [color1, color2, color3] = ["#f00f0f", "#00f0f0", "#000000"];
     const isFriend = friends.map(e => e.id).includes(userData.id);
     const isOnline = isFriend && onlineFriendsIds.includes(userData.id);
     // hooks
@@ -80,6 +102,9 @@ function UserProfile({ userData }: { userData: ReturnType<typeof useProfileUser>
         setActiveView("chat");
         closeProfileView();
     }
+    function copyUserId() {
+        copyToClipboard(userData.id);
+    }
     function withProgressDecorator(func: () => Promise<any>) {
         return async () => {
             document.body.style.cursor = "progress";
@@ -95,19 +120,30 @@ function UserProfile({ userData }: { userData: ReturnType<typeof useProfileUser>
     const rejectRequest = withProgressDecorator(() => dispatch(rejectFriendRequest(userData.id)));
 
     // JSX
+    const ActiveSection = activeSection.Component;
     return (
-        <div ref={containerRef} className="absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center bg-black bg-opacity-[.4]">
-            <div className="flex h-1/2 w-1/2 flex-col gap-2 rounded-lg bg-black p-4">
+        <div ref={containerRef} className="absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center overflow-hidden bg-black bg-opacity-[.4]">
+            <div className="flex h-[40rem] w-[50rem] flex-col gap-2 rounded-lg bg-black px-4 py-2">
                 {/* component pentru bacground */}
-                <div style={{ background: `linear-gradient(45deg, ${color1} 0%, ${color2} 100%)` }} className="absolute top-0 left-0 h-24 w-full rounded-t-lg">
-                    <div style={{ background: `linear-gradient(45deg, ${color1} 0%, ${color2} 100%)` }} className=" absolute top-full left-0 h-16 w-full brightness-[0.5]">
+                <div style={{ background: `linear-gradient(45deg, ${color1} 0%, ${color2} 100%)` }} className="absolute top-0 left-0 h-[5.5rem] w-full rounded-t-lg">
+                    <div style={{ background: `linear-gradient(45deg, ${color1} 0%, ${color2} 100%)` }} className=" absolute top-full left-0 h-14 w-full brightness-[0.5]">
                         <div style={{ background: `linear-gradient(0deg, rgba(0,0,0,1) 0%, transparent 100%)` }} className=" absolute top-0 left-0 h-full w-full"></div>
                     </div>
                 </div>
                 {/* componentu de sus care contine imaginea si altele */}
-                <div className="flex h-32 items-end justify-between">
+                <div
+                    onClick={copyUserId}
+                    className="flex w-fit cursor-pointer items-center gap-1 text-base text-white text-opacity-50 duration-100 ease-linear hover:tracking-wide hover:text-white active:scale-90 active:brightness-75 [&:hover_#visibleOnParentHover]:flex [&_#visibleOnParentHover]:hidden"
+                >
+                    <IdIcon className="aspect-square h-[1.2rem]" />
+                    {"#" + userData.id}
+
+                    <Tooltip id="visibleOnParentHover">{"Copy user id"}</Tooltip>
+                </div>
+                <div className="flex min-h-[8rem] items-end justify-between gap-2">
                     {/* containeru la imagine */}
-                    <div className="h-3/4">
+
+                    <div className="aspect-square h-20">
                         <img
                             onClick={openImageInNewTab}
                             src={userData.picture || "img/blank_profile.png"}
@@ -118,8 +154,17 @@ function UserProfile({ userData }: { userData: ReturnType<typeof useProfileUser>
                             className={`${isOnline ? "bg-Verde" : "bg-neutral-500"} absolute bottom-0 right-0 box-content aspect-square h-5 rounded-full border-4 border-Gray2`}
                         ></div>
                     </div>
+                    {/* containeru la nume si copy id button*/}
+                    <div className="">
+                        <div className="flex items-end gap-2">
+                            <div className="font-Whyte-Medium text-4xl text-white">{userData.username}</div>
+                        </div>
+                        <div className="text-sm text-white text-opacity-50">{isOnline ? "Online" : "Last seen " + formatDate(userData.lastSeenAt || 1680708838964)}</div>
+                    </div>
+                    {/* spatiu liber */}
+                    <div className="flex-grow"></div>
                     {/* containeru la butoanele cu send,accept,reject etc. */}
-                    <div className={"flex cursor-pointer items-center gap-2 rounded-full hover:bg-white hover:bg-opacity-5 [&>*]:duration-100 [&>*]:ease-linear "}>
+                    <div className={"flex cursor-pointer items-center gap-2 rounded-full [&>*]:duration-100 [&>*]:ease-linear "}>
                         {/* open chat / send message */}
                         {isFriend && (
                             <div
@@ -183,9 +228,9 @@ function UserProfile({ userData }: { userData: ReturnType<typeof useProfileUser>
                 <div className="flex w-full font-Whyte-Medium text-xl">
                     {profileSections.map(section => (
                         <div
-                            onClick={() => setActiveSection(section.name)}
+                            onClick={() => setActiveSection(section)}
                             className={`border-white p-3 text-white ${
-                                activeSection === section.name
+                                activeSection.name === section.name
                                     ? "cursor-default border-b-[0.5vmin]"
                                     : "cursor-pointer border-b-[0.3vmin] border-opacity-30 text-opacity-30 hover:text-Verde"
                             }`}
@@ -194,9 +239,150 @@ function UserProfile({ userData }: { userData: ReturnType<typeof useProfileUser>
                         </div>
                     ))}
                 </div>
+                <div className="h-full w-full overflow-auto">
+                    <ActiveSection userData={userData} />
+                </div>
             </div>
         </div>
     );
 }
 
 export default UserProfile;
+
+function UserInfoSection({ userData }: { userData: ReturnType<typeof useProfileUser> }) {
+    const dispatch = useMyDispatch();
+    const { setActiveView } = React.useContext(AppContext);
+    // states
+    const containerRef = React.useRef<HTMLDivElement>();
+    const [activeSection, setActiveSection] = React.useState<ProfileSection["name"]>("User Info");
+    const friends = useFriends();
+    const onlineFriendsIds = useOnlineFriendsIds();
+    const sentFriendRequests = useSentFriendRequests();
+    const receivdFriendRequests = useReceivedFriendRequests();
+    const friendRequestAlreadySent: boolean = !!sentFriendRequests.find(e => e.friendData.id === userData.id);
+    const friendRequestAlreadyReceived: boolean = !!receivdFriendRequests.find(e => e.friendData.id === userData.id);
+
+    const [color1, color2, color3] = userData.profileColors || ["#f00f0f", "#00fff0", "#000000"];
+    const isFriend = friends.map(e => e.id).includes(userData.id);
+    const isOnline = isFriend && onlineFriendsIds.includes(userData.id);
+
+    const { instagram, facebook, reddit, discord } = false || {
+        instagram: {
+            accountName: "",
+            link: "https://www.instagram.com/ion2266",
+        },
+        facebook: {
+            accountName: "",
+            link: "https://www.facebook.com/ion.mocanu.752861",
+        },
+        reddit: {
+            accountName: "",
+            link: "https://www.reddit.com/user/ion2266",
+        },
+        discord: {
+            accountName: "giovanni#2266",
+            link: "",
+        },
+    };
+    const country = countries.find(e => e.code === (userData.location || "MD"));
+    // const [instagram,reddid,facebook] = [];
+    // JSX
+    return (
+        <div className="w-full [&>*]:my-3">
+            <div className="flex-col">
+                <div className="font-Whyte-Heavy text-base text-white">{"JOINED ON"}</div>
+                <div className="flex gap-2">
+                    <div className="text-base text-white text-opacity-75">{formatDate(userData.registeredAt, { withTime: false })}</div>
+                    <div className="text-base text-white text-opacity-75">{`(${formatAge(userData.registeredAt)} ago)`}</div>
+                </div>
+            </div>
+            <div className="flex-col gap-2">
+                <div className="font-Whyte-Heavy text-base text-white">{"ABOUT ME"}</div>
+                <div className="text-base text-white text-opacity-75">{userData.aboutMe || "My name is " + userData.username}</div>
+            </div>
+            <div className="flex-col gap-2">
+                <div className="font-Whyte-Heavy text-base text-white">{"REGION"}</div>
+                <div className="flex items-center gap-1 text-base text-white text-opacity-75">
+                    <div className="cursor-default text-xl duration-100 ease-linear hover:text-4xl">{country.emoji}</div>
+                    <div className="text-center text-base text-white text-opacity-50">{country.name}</div>
+                </div>
+            </div>
+            <div className="grid grid-cols-2 justify-items-center gap-2">
+                <div className="col-span-2 w-full font-Whyte-Heavy text-base text-white">{"SOCIAL MEDIA LINKS"}</div>
+                {userData.socialMediaLinks && (
+                    <>
+                        {instagram && <SocialMediaComponent Icon={InstagramIcon} accountName={socialMediaAccountNameExtractor.instagram(instagram.link)} link={instagram.link} />}
+                        {facebook && <SocialMediaComponent Icon={FacebookIcon} accountName={socialMediaAccountNameExtractor.facebook(facebook.link)} link={facebook.link} />}
+                        {reddit && <SocialMediaComponent Icon={RedditIcon} accountName={socialMediaAccountNameExtractor.reddit(reddit.link)} link={reddit.link} />}
+                        {discord && <SocialMediaComponent Icon={DiscordIcon} accountName={discord.accountName} link={undefined} />}
+                    </>
+                )}
+            </div>
+            <div className="h-[100vh]"></div>
+        </div>
+    );
+}
+
+function MutualFriendsSection({ userData }: { userData: ReturnType<typeof useProfileUser> }) {
+    const dispatch = useMyDispatch();
+    const { setActiveView } = React.useContext(AppContext);
+    // states
+    const containerRef = React.useRef<HTMLDivElement>();
+    const [activeSection, setActiveSection] = React.useState<ProfileSection["name"]>("User Info");
+    const friends = useFriends();
+    const onlineFriendsIds = useOnlineFriendsIds();
+    const sentFriendRequests = useSentFriendRequests();
+    const receivdFriendRequests = useReceivedFriendRequests();
+    const friendRequestAlreadySent: boolean = !!sentFriendRequests.find(e => e.friendData.id === userData.id);
+    const friendRequestAlreadyReceived: boolean = !!receivdFriendRequests.find(e => e.friendData.id === userData.id);
+
+    const [color1, color2, color3] = userData.profileColors || ["#f00f0f", "#00fff0", "#000000"];
+    const isFriend = friends.map(e => e.id).includes(userData.id);
+    const isOnline = isFriend && onlineFriendsIds.includes(userData.id);
+
+    // JSX
+    return <div></div>;
+}
+
+function MutualGroupsSection({ userData }: { userData: ReturnType<typeof useProfileUser> }) {
+    const dispatch = useMyDispatch();
+    const { setActiveView } = React.useContext(AppContext);
+    // states
+    const containerRef = React.useRef<HTMLDivElement>();
+    const [activeSection, setActiveSection] = React.useState<ProfileSection["name"]>("User Info");
+    const friends = useFriends();
+    const onlineFriendsIds = useOnlineFriendsIds();
+    const sentFriendRequests = useSentFriendRequests();
+    const receivdFriendRequests = useReceivedFriendRequests();
+    const friendRequestAlreadySent: boolean = !!sentFriendRequests.find(e => e.friendData.id === userData.id);
+    const friendRequestAlreadyReceived: boolean = !!receivdFriendRequests.find(e => e.friendData.id === userData.id);
+
+    const [color1, color2, color3] = userData.profileColors || ["#f00f0f", "#00fff0", "#000000"];
+    const isFriend = friends.map(e => e.id).includes(userData.id);
+    const isOnline = isFriend && onlineFriendsIds.includes(userData.id);
+
+    // JSX
+    return <div></div>;
+}
+
+function SocialMediaComponent({ Icon, accountName, link }: { Icon: React.FunctionComponent<React.SVGProps<any>>; accountName: string; link?: string }) {
+    function openLink() {
+        link && window.open(link, "_blank");
+    }
+    return (
+        <div className="flex h-12 w-full items-center gap-2 rounded-md  border-[0.2vmin] border-white border-opacity-50 p-1 px-3 text-base text-white text-opacity-90 duration-100 ease-linear hover:bg-white hover:bg-opacity-20 [&:hover_#visibleOnParentHover]:flex [&_#visibleOnParentHover]:hidden">
+            <Icon onClick={openLink} className="aspect-square h-[90%] cursor-pointer duration-100  ease-linear hover:scale-105" />
+            {accountName}
+            {link && (
+                <div className="flex h-full items-center">
+                    <VerifiedIcon className="aspect-square h-[60%] text-blue-500" verified={false} />
+                    <Tooltip shadowColor={"Crimson"} textColor={CrimsonColor} id="visibleOnParentHover" className="text-base">
+                        {"Not Verified"}
+                    </Tooltip>
+                </div>
+            )}
+            <div className="flex-grow"></div>
+            {link && <BoxArrowUpRight onClick={openLink} className="aspect-square h-[60%] cursor-pointer duration-100 ease-linear hover:scale-110 hover:text-Verde" />}
+        </div>
+    );
+}

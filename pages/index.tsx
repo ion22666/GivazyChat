@@ -28,7 +28,7 @@ import UserProfile from "../components/views/UserProfile";
 export var socket: Socket;
 
 export interface View {
-    name: "chat" | "search" | "friends";
+    name: "chat" | "search" | "friends" | "editProfile";
     Component: React.FunctionComponent<any>;
     NavBarIcon: React.FunctionComponent<any>;
     condition: () => any;
@@ -67,6 +67,13 @@ export const views: View[] = [
     },
     {
         name: "friends",
+        Component: FriendsSection,
+        NavBarIcon: FriendIcon,
+        condition: () => true,
+        FallbackComponent: FriendsSection,
+    },
+    {
+        name: "editProfile",
         Component: FriendsSection,
         NavBarIcon: FriendIcon,
         condition: () => true,
@@ -196,19 +203,17 @@ function HomePage() {
     const ActiveViewComponent = activeViewObj.condition() ? activeViewObj.Component : activeViewObj.FallbackComponent;
 
     const desktopReturn = (
-        <div className="flex h-full w-full flex-col">
+        <div className="flex  h-full w-full flex-row gap-2 bg-Gray3 p-2">
             {profileUserData && <UserProfile userData={profileUserData} />}
-            
-            <div className="flex  h-full w-full flex-grow flex-row gap-2 bg-Gray3 p-2">
-                <div className="w-14 rounded-lg bg-Gray3">
-                    <FirstSection />
-                </div>
-                <div className="w-60 rounded-lg bg-Gray2 p-2">
-                    <SecondSection />
-                </div>
-                <div className="flex-grow rounded-lg bg-Gray1">
-                    <ActiveViewComponent />
-                </div>
+
+            <div className="w-14 rounded-lg bg-Gray3">
+                <FirstSection />
+            </div>
+            <div className="w-60 rounded-lg bg-Gray2 p-2">
+                <SecondSection />
+            </div>
+            <div className="flex-grow rounded-lg bg-Gray1">
+                <ActiveViewComponent />
             </div>
         </div>
     );

@@ -34,10 +34,10 @@ declare namespace global {
         location: string;
         lastSeenAt: number;
         socialMediaLinks: {
-            instagram?: string;
-            facebook?: string;
-            discord?: string;
-            reddit?: string;
+            instagram?: SocialMediaAccount;
+            facebook?: SocialMediaAccount;
+            discord?: SocialMediaAccount;
+            reddit?: SocialMediaAccount;
         };
         //
         friends: { friendId: string; chatId: string }[];
@@ -65,10 +65,10 @@ declare namespace global {
         location: string;
         lastSeenAt: number;
         socialMediaLinks: {
-            instagram?: string;
-            facebook?: string;
-            discord?: string;
-            reddit?: string;
+            instagram?: SocialMediaAccount;
+            facebook?: SocialMediaAccount;
+            discord?: SocialMediaAccount;
+            reddit?: SocialMediaAccount;
         };
     }
 
@@ -122,6 +122,18 @@ declare namespace global {
     interface ApiResponse<T> {
         data?: T;
         error?: string;
+    }
+    interface SocialMediaAccount {
+        accountName: string;
+        link?: stirng;
+    }
+
+    interface Country {
+        name: string;
+        code: string;
+        emoji: string;
+        unicode: string;
+        image: string;
     }
 }
 
