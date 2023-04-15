@@ -132,10 +132,10 @@ const UserSchema = new mongoose.Schema({
     profileColors: { type: Array(String), default: ["#000000", "#ffffff", "#000000"] },
     location: { type: String, default: "" },
     socialMediaLinks: {
-        instagram: { type: String, default: "" },
-        facebook: { type: String, default: "" },
-        discord: { type: String, default: "" },
-        reddit: { type: String, default: "" },
+        instagram: { type: { accountName: String, link: String }, default: {} },
+        facebook: { type: { accountName: String, link: String }, default: {} },
+        discord: { type: { accountName: String, link: String }, default: {} },
+        reddit: { type: { accountName: String, link: String }, default: {} },
     },
 });
 const createJWT = function () {
@@ -215,7 +215,7 @@ removeFriendStream.on("change", change => {
 var getUserFromToken = async (token) => {
     if (!token)
         throw new Error("Auth token missing on");
-    let payload = ((e) => (typeof e === "string" ? JSON.parse(e) : e)).call(null, jwt.verify(token, process.env.JWT_PRIVETE_KEY || "givazy", { algorithms: ["HS256"] }));
+    let payload = ((e) => (typeof e === "string" ? JSON.parse(e) : e)).call(null, jwt.verify(token, process.env.JWT_PRIVETE_KEY, { algorithms: ["HS256"] }));
     if (!payload.sub)
         throw new Error("Invalid token");
     const user = await User.findOne({ _id: payload.sub });
@@ -826,10 +826,10 @@ const sendMessage = async (req, res) => {
 var chatRouter = express.Router().post("/:chatId/messages", sendMessage);
 
 dotenv.config();
-const dev = process.env.NODE_ENV !== "production";
+const dev = !process.env.NODE_ENV.includes("production");
 const hostname = dev ? "localhost" : "0.0.0.0";
 const port = dev ? 3000 : 8000;
-const nextApp = next({ dev });
+const nextApp = next({ dev: dev });
 const nextHandle = nextApp.getRequestHandler();
 const nextHook = (req, res) => {
     req.url = req.originalUrl;

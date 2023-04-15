@@ -17,11 +17,11 @@ import chatRouter from "./routers/chatRouter";
 
 dotenv.config();
 
-const dev = process.env.NODE_ENV !== "production";
+const dev = !process.env.NODE_ENV.includes("production");
 const hostname = dev ? "localhost" : "0.0.0.0";
 const port = dev ? 3000 : 8000;
 
-const nextApp = next({ dev });
+const nextApp = next({ dev: dev });
 const nextHandle = nextApp.getRequestHandler();
 
 const nextHook: Handler = (req, res) => {

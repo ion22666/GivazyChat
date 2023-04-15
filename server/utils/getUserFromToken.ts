@@ -6,7 +6,7 @@ export default async (token: string | undefined): Promise<global.User> => {
 
     let payload: global.JWT = ((e: string | jwt.JwtPayload) => (typeof e === "string" ? JSON.parse(e) : e)).call(
         null,
-        jwt.verify(token, process.env.JWT_PRIVETE_KEY || "givazy", { algorithms: ["HS256"] })
+        jwt.verify(token, process.env.JWT_PRIVETE_KEY, { algorithms: ["HS256"] })
     );
 
     if (!payload.sub) throw new Error("Invalid token");
