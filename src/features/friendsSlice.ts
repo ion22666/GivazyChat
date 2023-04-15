@@ -29,6 +29,7 @@ export const friendsSlice = createSlice({
         },
         setOnlineFriends: (state, action: PayloadAction<string[]>) => {
             state.onlineFriends = action.payload;
+            state.friends.forEach(e=>(e.isOnline = action.payload.includes(e.id)));
         },
     },
     extraReducers: builder => {

@@ -8,7 +8,7 @@ export const formatDate = (unixTime: number, options: { withTime?: boolean } = {
     const minutes = date.getMinutes().toString().padStart(2, "0");
 
     // Comparăm doar data și ora (fără secunde sau milisecunde)
-    const nowWithoutTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours(), now.getMinutes());
+    const nowWithoutTime = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const dateWithoutTime = new Date(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes());
 
     if (nowWithoutTime.getTime() < dateWithoutTime.getTime()) {

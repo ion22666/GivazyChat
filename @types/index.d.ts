@@ -55,6 +55,7 @@ declare namespace global {
     }
 
     interface UserData {
+        isOnline?: boolean;
         id: string;
         email?: string;
         username?: string;

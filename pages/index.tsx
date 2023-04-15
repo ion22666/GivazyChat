@@ -24,6 +24,7 @@ import SearchIcon from "../components/svg/Search";
 import { store } from "../src/store";
 import { useProfileUser } from "../src/features/userProfileSlice";
 import UserProfile from "../components/views/UserProfile";
+import { useSecondSectionIsOpen } from "../src/features/mobileSlice";
 
 export var socket: Socket;
 
@@ -55,7 +56,7 @@ export const views: View[] = [
         name: "chat",
         Component: Chat,
         NavBarIcon: ChatBubbleIcon,
-        condition: () => store.getState().chatSlice.activeChatId,
+        condition: () => store.getState().chatSlice.chats.length || store.getState().chatSlice.activeChatId,
         FallbackComponent: () => <div>{"No Chat Selected"}</div>,
     },
     {
@@ -86,12 +87,12 @@ function HomePage() {
     // states
     const currentUserId = useCurrentUser().id;
     const activeChat = useActiveChat();
-    console.log("activeChat", activeChat);
     const activeChatFriend = useActiveChatFriend();
     const [activeView, setActiveView] = React.useState<any>("friends");
     const [isMobile, setIsMobile] = React.useState<any>(true);
     const [searchViewInput, setSearchViewInput] = React.useState<string>("");
     const profileUserData = useProfileUser();
+    const secondSectionIsOpen = useSecondSectionIsOpen();
     // facem conexiunea la serverul web socket
     React.useEffect(() => {
         socket = io({
@@ -220,11 +221,19 @@ function HomePage() {
 
     const mobileReturn = (
         <div className="flex h-full w-full flex-col">
-            <div className="h-full overflow-auto bg-Gray2">
+            {profileUserData && <UserProfile userData={profileUserData} />}
+
+            <div className={`h-full overflow-auto bg-Gray2 ${secondSectionIsOpen ? "brightness-50" : ""}`}>
                 <ActiveViewComponent />
             </div>
-            <div className="h-10 w-full bg-white">
-                <MobileNavbar />
+            <div className={`h-14 w-full bg-Gray3 ${secondSectionIsOpen ? "brightness-50" : ""}`}>
+                <FirstSection />
+            </div>
+            <div
+                style={{ transform: `translateX(${secondSectionIsOpen ? "0%" : "-100%"})` }}
+                className="absolute bottom-0 left-0 flex h-full w-[80%] bg-Gray1 p-2 duration-100 ease-linear"
+            >
+                <SecondSection />
             </div>
         </div>
     );

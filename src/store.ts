@@ -7,6 +7,7 @@ import { friendsSlice } from "./features/friendsSlice";
 import { searchSlice } from "./features/searchSlice";
 import { createLogger } from "redux-logger";
 import { userProfileSlice } from "./features/userProfileSlice";
+import { mobileSlice } from "./features/mobileSlice";
 
 export type StorageState = {
     currentUser: {
@@ -37,6 +38,7 @@ export const store = configureStore({
         friendRequests: friendRequestsSlice.reducer,
         search: searchSlice.reducer,
         userProfile: userProfileSlice.reducer,
+        mobileSlice: mobileSlice.reducer,
     },
     middleware: getDefaultMiddleware =>
         getDefaultMiddleware({

@@ -112,7 +112,7 @@ function SearchViewComponent() {
     }
 
     const desktopReturn = (
-        <div className="flex h-full w-full flex-col rounded-md">
+        <div className="flex h-full w-full flex-col rounded-md">    
             {/* search bar component */}
             <div className="flex w-full justify-center rounded-t-lg bg-Verde bg-opacity-75 py-4">
                 <div className="flex h-12 min-w-[90%] flex-row items-center gap-1 rounded-md bg-Gray2 px-2 py-1">
@@ -124,7 +124,7 @@ function SearchViewComponent() {
                         className="h-full flex-grow bg-transparent font-Whyte-Medium text-xl text-Verde placeholder:font-Whyte-Italic"
                         type="text"
                     />
-                    <div onClick={updateCategoryRowsData as any} className="h-full p-1 duration-100  ease-linear hover:p-2">
+                    <div className="h-full p-1 duration-100  ease-linear hover:p-2">
                         <SearchIcon className="h-full text-white active:text-Verde" />
                     </div>
                 </div>
@@ -188,26 +188,26 @@ function SearchViewComponent() {
     );
 
     const mobileReturn = (
-        <div className="flex h-full w-full flex-col rounded-md px-2">
+        <div className="flex h-full w-full flex-col">
             {/* search bar component */}
-            <div className="flex w-full justify-center rounded-t-lg bg-Verde bg-opacity-75 py-4">
-                <div className="flex h-12 min-w-[90%] flex-row items-center gap-1 rounded-md bg-Gray2 px-2 py-1">
+            <div className="flex w-full justify-center bg-Verde bg-opacity-75 p-3">
+                <div className="flex h-12 w-full flex-row items-center gap-1 rounded-md bg-Gray2 px-2 py-1">
                     <input
                         onChange={onInputChange}
                         onKeyDown={onKeyDown}
                         value={searchViewInput}
                         placeholder={activeSearchCategory.searchBarPlaceholder}
-                        className="h-full flex-grow bg-transparent font-Whyte-Medium text-xl text-Verde placeholder:font-Whyte-Italic"
+                        className="h-full flex-grow bg-transparent font-Whyte-Medium text-lg text-Verde placeholder:font-Whyte-Italic"
                         type="text"
                     />
-                    <div onClick={updateCategoryRowsData as any} className="h-full p-1 duration-100  ease-linear hover:p-2">
+                    <div className="h-full p-1 duration-100  ease-linear hover:p-2">
                         <SearchIcon className="h-full text-white active:text-Verde" />
                     </div>
                 </div>
             </div>
 
             {/* search category chooser component */}
-            <div className="flex w-full gap-8 rounded-b-lg bg-Gray1 bg-opacity-50 p-4">
+            <div className="flex w-full gap-8 bg-Gray1 bg-opacity-50 p-3">
                 {searchCategories.map(categoty => {
                     const isActive = activeSearchCategory.name === categoty.name;
                     const IconToRender = isActive ? categoty.ActiveIcon : categoty.InactiveIcon;
@@ -216,7 +216,7 @@ function SearchViewComponent() {
                             key={categoty.name}
                             onClick={() => switchCategory({ ...categoty })}
                             className={
-                                "flex flex-grow cursor-pointer items-center justify-center gap-2 rounded-lg p-4" +
+                                "flex flex-grow cursor-pointer items-center justify-center gap-3 rounded-lg p-3" +
                                 " " +
                                 "[&>*]:duration-100 [&>*]:ease-linear [&>*]:hover:scale-110" +
                                 " " +
@@ -231,7 +231,7 @@ function SearchViewComponent() {
             </div>
 
             {/* containerul cu rezultatele gasite (users sau groups) */}
-            <div onScroll={onScroll} className="mt-4 w-full flex-grow gap-4 overflow-y-auto rounded-lg bg-white bg-opacity-5 p-4">
+            <div onScroll={onScroll} className="w-full flex-grow gap-4 overflow-y-auto bg-white bg-opacity-5 p-4">
                 {/* display the total match count */}
                 <div className="-mt-2 text-white text-opacity-50">{(activeSearchCategory.matchFound || "0") + " - total matches"}</div>
 

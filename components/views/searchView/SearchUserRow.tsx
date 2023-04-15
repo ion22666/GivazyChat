@@ -78,7 +78,7 @@ export const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
             {/* containerul din partea stanga */}
             <div id="leftSide" className="flex h-full  flex-row items-center gap-4 p-1">
                 {/* poza si markul de online/offline */}
-                <div onClick={openUserProfile} className="cursor-pointer aspect-square h-full">
+                <div onClick={openUserProfile} className="aspect-square h-full cursor-pointer">
                     <img src={rowData.picture} referrerPolicy="no-referrer" className="aspect-square h-full rounded-full" />
                     <div
                         style={{ backgroundColor: "gray" }}
@@ -86,7 +86,7 @@ export const UserRow: React.FunctionComponent<Props> = ({ rowData }: Props) => {
                     ></div>
                 </div>
                 {/* numele la user */}
-                <div onClick={openUserProfile} id="name" className="cursor-pointer text-xl text-white">
+                <div onClick={openUserProfile} id="name" className={`cursor-pointer whitespace-nowrap overflow-hidden overflow-ellipsis text-white ${isMobile ? "text-base" : "text-xl"}`}>
                     {rowData.username}
                 </div>
             </div>

@@ -34,6 +34,8 @@ import BoxArrowUpRight from "../svg/BoxArrowUpRight";
 import countriesJson from "../utils/countries.json";
 import VerifiedIcon from "../svg/VerifiedIcon";
 import { CrimsonColor } from "../../pages/_app";
+import { useCurrentUser } from "../../src/features/currentUserSlice";
+import PencilEmptyIcon from "../svg/PencilEmptyIcon";
 
 const countries = countriesJson as global.Country[];
 
@@ -61,7 +63,7 @@ const profileSections: ProfileSection[] = [
 
 function UserProfile({ userData }: Props) {
     const dispatch = useMyDispatch();
-    const { setActiveView } = React.useContext(AppContext);
+    const { setActiveView, isMobile } = React.useContext(AppContext);
     // states
     const containerRef = React.useRef<HTMLDivElement>();
     const [activeSection, setActiveSection] = React.useState<ProfileSection>(profileSections[0]);
@@ -75,6 +77,7 @@ function UserProfile({ userData }: Props) {
     const [color1, color2, color3] = ["#f00f0f", "#00f0f0", "#000000"];
     const isFriend = friends.map(e => e.id).includes(userData.id);
     const isOnline = isFriend && onlineFriendsIds.includes(userData.id);
+    const isCurrentUser = userData.id === useCurrentUser().id;
     // hooks
     React.useEffect(() => {
         const closeProfileViewWrapper = (e: MouseEvent) => {
@@ -123,27 +126,32 @@ function UserProfile({ userData }: Props) {
     const ActiveSection = activeSection.Component;
     return (
         <div ref={containerRef} className="absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center overflow-hidden bg-black bg-opacity-[.4]">
-            <div className="flex h-[40rem] w-[50rem] flex-col gap-2 rounded-lg bg-black px-4 py-2">
+            <div className={`flex flex-col gap-4 rounded-lg bg-black px-4 py-2 ${isMobile ? "h-[45rem] w-[90%]" : "h-[40rem] w-[50rem]"}`}>
                 {/* component pentru bacground */}
                 <div style={{ background: `linear-gradient(45deg, ${color1} 0%, ${color2} 100%)` }} className="absolute top-0 left-0 h-[5.5rem] w-full rounded-t-lg">
                     <div style={{ background: `linear-gradient(45deg, ${color1} 0%, ${color2} 100%)` }} className=" absolute top-full left-0 h-14 w-full brightness-[0.5]">
                         <div style={{ background: `linear-gradient(0deg, rgba(0,0,0,1) 0%, transparent 100%)` }} className=" absolute top-0 left-0 h-full w-full"></div>
                     </div>
                 </div>
-                {/* componentu de sus care contine imaginea si altele */}
-                <div
-                    onClick={copyUserId}
-                    className="flex w-fit cursor-pointer items-center gap-1 text-base text-white text-opacity-50 duration-100 ease-linear hover:tracking-wide hover:text-white active:scale-90 active:brightness-75 [&:hover_#visibleOnParentHover]:flex [&_#visibleOnParentHover]:hidden"
-                >
-                    <IdIcon className="aspect-square h-[1.2rem]" />
-                    {"#" + userData.id}
+                {/* componenta cu id-ul la user */}
+                <div className="flex">
+                    <div
+                        onClick={copyUserId}
+                        className="flex w-fit cursor-pointer items-center gap-1 text-base text-white text-opacity-50 duration-100 ease-linear hover:tracking-wide hover:text-white active:scale-90 active:brightness-75 [&:hover_#visibleOnParentHover]:flex [&_#visibleOnParentHover]:hidden"
+                    >
+                        <IdIcon className="aspect-square h-[1.2rem]" />
+                        {"#" + userData.id}
 
-                    <Tooltip id="visibleOnParentHover">{"Copy user id"}</Tooltip>
+                        <Tooltip id="visibleOnParentHover">{"Copy user id"}</Tooltip>
+                    </div>
+                    <div className="flex-grow"></div>
+                    {isCurrentUser && <PencilEmptyIcon className="aspect-square h-10 cursor-pointer text-white text-opacity-[0.75] hover:text-opacity-100" />}
                 </div>
-                <div className="flex min-h-[8rem] items-end justify-between gap-2">
+                {/* componentu de sus care contine imaginea si altele */}
+                <div className={`flex items-end justify-center gap-2 ${isMobile ? "flex-wrap min-h-[8rem] mt-[1rem]" : "min-h-[6.5rem]"}`}>
                     {/* containeru la imagine */}
 
-                    <div className="aspect-square h-20">
+                    <div className={`aspect-square  ${isMobile ? "h-16" : "h-20"}`}>
                         <img
                             onClick={openImageInNewTab}
                             src={userData.picture || "img/blank_profile.png"}
@@ -151,22 +159,26 @@ function UserProfile({ userData }: Props) {
                         />
                         <Tooltip id="visibleOnSiblingHover">{"Open image in new tab"}</Tooltip>
                         <div
-                            className={`${isOnline ? "bg-Verde" : "bg-neutral-500"} absolute bottom-0 right-0 box-content aspect-square h-5 rounded-full border-4 border-Gray2`}
+                            className={`${
+                                isOnline || isCurrentUser ? "bg-Verde" : "bg-neutral-500"
+                            } absolute bottom-0 right-0 box-content aspect-square h-5 rounded-full border-4 border-Gray2`}
                         ></div>
                     </div>
-                    {/* containeru la nume si copy id button*/}
+                    {/* containeru la nume*/}
                     <div className="">
                         <div className="flex items-end gap-2">
-                            <div className="font-Whyte-Medium text-4xl text-white">{userData.username}</div>
+                            <div className={`font-Whyte-Medium text-white ${isMobile ? "text-2xl" : "text-4xl"}`}>{userData.username}</div>
                         </div>
-                        <div className="text-sm text-white text-opacity-50">{isOnline ? "Online" : "Last seen " + formatDate(userData.lastSeenAt || 1680708838964)}</div>
+                        <div className="text-sm text-white text-opacity-50">
+                            {isCurrentUser || isOnline ? "Online" : "Last seen " + formatDate(userData.lastSeenAt || 1680708838964)}
+                        </div>
                     </div>
                     {/* spatiu liber */}
                     <div className="flex-grow"></div>
                     {/* containeru la butoanele cu send,accept,reject etc. */}
-                    <div className={"flex cursor-pointer items-center gap-2 rounded-full [&>*]:duration-100 [&>*]:ease-linear "}>
+                    <div className={`flex cursor-pointer items-center gap-2 rounded-full [&>*]:duration-100 [&>*]:ease-linear ${isMobile ? "" : ""}`}>
                         {/* open chat / send message */}
-                        {isFriend && (
+                        {!isCurrentUser && isFriend && (
                             <div
                                 className="flex items-center gap-1 rounded bg-Verde px-2 py-1 font-Whyte-Medium text-lg text-white shadow-sm shadow-black hover:bg-white hover:text-Verde active:scale-90 active:opacity-70"
                                 onClick={openChat}
@@ -176,7 +188,7 @@ function UserProfile({ userData }: Props) {
                             </div>
                         )}
                         {/* send friend request */}
-                        {!isFriend && !friendRequestAlreadySent && !friendRequestAlreadyReceived && (
+                        {!isCurrentUser && !isFriend && !friendRequestAlreadySent && !friendRequestAlreadyReceived && (
                             <div
                                 className="flex items-center gap-1 rounded bg-Verde px-2 py-1 font-Whyte-Medium text-lg text-white shadow-sm shadow-black hover:bg-white hover:text-Verde active:scale-90 active:opacity-70"
                                 onClick={sendRequest}
@@ -186,7 +198,7 @@ function UserProfile({ userData }: Props) {
                             </div>
                         )}
                         {/* cancel friend request */}
-                        {friendRequestAlreadySent && (
+                        {!isCurrentUser && friendRequestAlreadySent && (
                             <div
                                 className="flex items-center gap-1 rounded bg-Crimson px-2 py-1 font-Whyte-Medium text-lg text-white shadow-sm shadow-black hover:bg-white hover:text-Crimson active:scale-90 active:opacity-70"
                                 onClick={cancelRequest}
@@ -196,7 +208,7 @@ function UserProfile({ userData }: Props) {
                             </div>
                         )}
                         {/* accept or reject friend request */}
-                        {friendRequestAlreadyReceived && (
+                        {!isCurrentUser && friendRequestAlreadyReceived && (
                             <div className="flex items-center gap-1">
                                 {/* accept */}
                                 <div
@@ -225,11 +237,12 @@ function UserProfile({ userData }: Props) {
                         </div>
                     </div>
                 </div>
-                <div className="flex w-full font-Whyte-Medium text-xl">
+                {/* section chooser */}
+                <div className={`flex w-full text-center font-Whyte-Medium ${isMobile ? "text-base" : "text-xl"}`}>
                     {profileSections.map(section => (
                         <div
                             onClick={() => setActiveSection(section)}
-                            className={`border-white p-3 text-white ${
+                            className={`border-white flex-grow text-white ${isMobile ? "" : "p-3"} ${
                                 activeSection.name === section.name
                                     ? "cursor-default border-b-[0.5vmin]"
                                     : "cursor-pointer border-b-[0.3vmin] border-opacity-30 text-opacity-30 hover:text-Verde"
@@ -239,6 +252,7 @@ function UserProfile({ userData }: Props) {
                         </div>
                     ))}
                 </div>
+                {/* section container */}
                 <div className="h-full w-full overflow-auto">
                     <ActiveSection userData={userData} />
                 </div>
@@ -251,7 +265,7 @@ export default UserProfile;
 
 function UserInfoSection({ userData }: { userData: ReturnType<typeof useProfileUser> }) {
     const dispatch = useMyDispatch();
-    const { setActiveView } = React.useContext(AppContext);
+    const { setActiveView, isMobile } = React.useContext(AppContext);
     // states
     const containerRef = React.useRef<HTMLDivElement>();
     const [activeSection, setActiveSection] = React.useState<ProfileSection["name"]>("User Info");
@@ -289,6 +303,7 @@ function UserInfoSection({ userData }: { userData: ReturnType<typeof useProfileU
     // JSX
     return (
         <div className="w-full [&>*]:my-3">
+            {/* joinde on */}
             <div className="flex-col">
                 <div className="font-Whyte-Heavy text-base text-white">{"JOINED ON"}</div>
                 <div className="flex gap-2">
@@ -296,10 +311,12 @@ function UserInfoSection({ userData }: { userData: ReturnType<typeof useProfileU
                     <div className="text-base text-white text-opacity-75">{`(${formatAge(userData.registeredAt)} ago)`}</div>
                 </div>
             </div>
+            {/* about me */}
             <div className="flex-col gap-2">
                 <div className="font-Whyte-Heavy text-base text-white">{"ABOUT ME"}</div>
                 <div className="text-base text-white text-opacity-75">{userData.aboutMe || "My name is " + userData.username}</div>
             </div>
+            {/* region */}
             <div className="flex-col gap-2">
                 <div className="font-Whyte-Heavy text-base text-white">{"REGION"}</div>
                 <div className="flex items-center gap-1 text-base text-white text-opacity-75">
@@ -307,7 +324,8 @@ function UserInfoSection({ userData }: { userData: ReturnType<typeof useProfileU
                     <div className="text-center text-base text-white text-opacity-50">{country.name}</div>
                 </div>
             </div>
-            <div className="grid grid-cols-2 justify-items-center gap-2">
+            {/* social media links */}
+            <div className={`gap-2 ${isMobile ? "flex flex-col w-full" : "grid grid-cols-2 justify-items-center"}`}>
                 <div className="col-span-2 w-full font-Whyte-Heavy text-base text-white">{"SOCIAL MEDIA LINKS"}</div>
                 {userData.socialMediaLinks && (
                     <>

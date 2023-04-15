@@ -11,13 +11,20 @@ import { soundEffect2, soundEffect3, soundEffect4 } from "../../utils/soundEffec
 import SendEmptyIcon from "../../svg/SendEmptyIcon";
 import SendEmptyFill from "../../svg/SendEmptyFill";
 import { userProfileSlice } from "../../../src/features/userProfileSlice";
-
+import EmojiSmileIcon from "../../svg/EmojiSmileEmptyIcon";
+import EmojiSmileFullIcon from "../../svg/EmojiSmileFullIcon";
+import EmojiPicker from "@emoji-mart/react";
+import emojiData from "@emoji-mart/data";
+import Tooltip from "../../utils/Tooltip";
+import hasParent from "../../utils/hasParent";
 const Chat: React.FunctionComponent = () => {
     const dispatch = useMyDispatch();
     // states
+    const { isMobile } = React.useContext(AppContext);
     const activeChat = useActiveChat();
     const unredMessagesCount = useUnredMessagesForChat(activeChat.id);
     const [unreadMarkIndex, setUnreadMarkIndex] = React.useState(-1);
+    const [emojiPickerIsVisible, setEmojiPickerIsVisible] = React.useState(false);
     const currentUser = useCurrentUser();
     const friends = useFriends();
     const onlineFriendsIds = useOnlineFriendsIds();
@@ -25,12 +32,13 @@ const Chat: React.FunctionComponent = () => {
     const inputRef = React.useRef<HTMLInputElement>();
     const messagesContainerRef = React.useRef<HTMLDivElement>();
     const newMarkRef = React.useRef<HTMLInputElement>();
+    const emojiPickerRef = React.useRef<HTMLDivElement>();
     // gasim userul la care se refera activeChat-ul din lista 'friends'
     const friendId: string = activeChat.participants.find(p => p.participantId !== currentUser.id).participantId;
     const friendData: global.FriendData = friends.find(e => e.id === friendId);
     const friendIsOnline = onlineFriendsIds.includes(friendData.id);
 
-    // hooks
+    // HOOKS
     React.useEffect(updateNewMark, []);
 
     const scrollDown = React.useCallback(() => (messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight), []);
@@ -47,11 +55,20 @@ const Chat: React.FunctionComponent = () => {
         dispatch(updateLastReadMessageTimeStamp({ chatId: activeChat.id, participantId: currentUser.id }));
     }, [activeChat.messages.length]);
 
-    // React.useEffect(() => {
-    //     newMarkRef.current ? scrollToNewMarck() : scrollDown();
-    // }, [newMarkRef.current]);
+    React.useEffect(() => {
+        if (!emojiPickerIsVisible) return;
+        function wrapper(e: MouseEvent) {
+            const target = e.target as HTMLElement;
+            if (!hasParent(target, emojiPickerRef.current)) setEmojiPickerIsVisible(false);
+        }
+        const timeoutId = setTimeout(() => document.addEventListener("click", wrapper), 0);
+        return () => {
+            clearTimeout(timeoutId);
+            document.removeEventListener("click", wrapper);
+        };
+    }, [emojiPickerIsVisible]);
 
-    // functions
+    // FUNCTIONS
     async function sendMessageHandler() {
         removeNewMark();
         soundEffect4();
@@ -97,7 +114,7 @@ const Chat: React.FunctionComponent = () => {
         // <DesktopChatComponent
         <div className="flex h-full w-full flex-col gap-2 ">
             {/* Asta e meniu de sus */}
-            <div className="flex h-14 items-center gap-2 rounded-t-lg bg-Verde bg-opacity-20 p-2 shadow-sm shadow-black">
+            <div className={`flex h-14 items-center gap-2 bg-Verde bg-opacity-20 p-2 shadow-sm shadow-black ${isMobile ? "" : "rounded-t-lg"}`}>
                 <img
                     onClick={openFriendProfile}
                     src={friendData.picture || "img/blank_profile.png"}
@@ -111,7 +128,7 @@ const Chat: React.FunctionComponent = () => {
             </div>
 
             {/* Asta e containeru cu mesaje */}
-            <div ref={messagesContainerRef} className="m-2 h-full w-full overflow-y-auto overflow-x-hidden">
+            <div ref={messagesContainerRef} className={`h-full w-full overflow-y-auto overflow-x-hidden ${isMobile ? "" : "m-2"}`}>
                 {activeChat.messages
                     .map((c, i, a) => a[a.length - i - 1])
                     .map((message, index) => {
@@ -131,16 +148,37 @@ const Chat: React.FunctionComponent = () => {
                 {/* <div style={{ height: "100vh" }}></div> */}
             </div>
             {/* Asta e containeru de jos care are inputul */}
-            <div className="m-2 flex h-12 w-auto flex-row rounded bg-white bg-opacity-20 shadow-sm shadow-black">
+            <div className="m-2 flex h-12 w-auto flex-row rounded bg-Gray1 shadow-sm shadow-black brightness-90">
+                {/* inputul */}
                 <input
-                    className="flex-grow rounded rounded-r-xl bg-Gray3 px-2 font-Whyte-Book text-lg text-white"
+                    className="z-[1] flex-grow rounded rounded-r-xl bg-Gray3 px-2 font-Whyte-Book text-lg text-white"
                     ref={inputRef}
                     placeholder="Send a message"
                     type="text"
                     onKeyDown={onKeyDown}
                 />
+                {/* emoji picker icon */}
+                <div
+                    onClick={() => setEmojiPickerIsVisible(e => !e)}
+                    className="-ml-4 flex h-full cursor-pointer items-center justify-center rounded-lg bg-Gray2 p-2 pl-6 duration-100 ease-linear hover:pl-8 hover:pr-4 [&:hover_#hiddenOnParentHover1]:hidden [&:hover_#visibleOnParentHover1]:flex [&_#hiddenOnParentHover1]:flex [&_#visibleOnParentHover1]:hidden"
+                >
+                    <EmojiSmileIcon id="hiddenOnParentHover1" className="aspect-square h-[1.4rem] text-white duration-100" />
+                    <EmojiSmileFullIcon id="visibleOnParentHover1" className="aspect-square h-[1.4rem] text-Verde duration-100" />
+                </div>
+                {/* emoji picker container/component */}
+                {emojiPickerIsVisible && (
+                    <div ref={emojiPickerRef} className="absolute right-0 top-0 -translate-y-full pb-2">
+                        <EmojiPicker
+                            data={emojiData}
+                            onEmojiSelect={(emoji: any) => {
+                                setEmojiPickerIsVisible(false);
+                                inputRef.current.value += emoji.native;
+                            }}
+                        />
+                    </div>
+                )}
                 {/* asta e containerul la SendIcon, e mai bine cand pui iconitele intrun wrapper/container decat sa le pui direct asa, iti permite sa faci animatii pe ele mai usor */}
-                <div onClick={sendMessageHandler} className="flex h-full items-center justify-center p-2">
+                <div onClick={sendMessageHandler} className="flex h-full items-center justify-center p-2 duration-100 ease-linear hover:px-4">
                     <div className="flex h-full cursor-pointer items-center gap-1 font-Whyte-Medium text-xl text-white hover:text-Verde active:opacity-50 [&:hover_#hiddenOnParentHover1]:hidden [&:hover_#visibleOnParentHover1]:flex [&_#hiddenOnParentHover1]:flex [&_#visibleOnParentHover1]:hidden">
                         {isSending ? (
                             <div className="flex h-full items-center justify-center">
