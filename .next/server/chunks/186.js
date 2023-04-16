@@ -2821,7 +2821,7 @@ const Message = (props)=>{
         senderData && dispatch(_src_features_userProfileSlice__WEBPACK_IMPORTED_MODULE_2__/* .userProfileSlice.actions.setUserData */ .B.actions.setUserData(senderData));
     }
     return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
-        className: "p-2 flex w-full flex-row gap-2",
+        className: "flex w-full flex-row gap-2 p-2",
         children: [
             /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("img", {
                 onClick: openSenderProfile,
@@ -2835,6 +2835,7 @@ const Message = (props)=>{
                         className: "flex flex-row items-center gap-2 text-xs text-stone-400",
                         children: [
                             /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("span", {
+                                onClick: openSenderProfile,
                                 className: "cursor-pointer font-Whyte-Medium text-[0.85rem] text-white text-opacity-60 hover:text-Verde",
                                 children: senderData.username
                             }),

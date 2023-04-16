@@ -10,7 +10,7 @@
         "test": "npx jest --config ./__tests__/.config/jest.config.js",
         "dev": "npx nodemon main.js",
         "dev-api": "set API_ONLY=true && npx nodemon main.js",
-        "start": "npx next build && node main.js",
+        "start": "set domain=https://givazy.onrender.com && npx next build && node main.js",
         "build": "next build",
         "rollup": "npx rollup -c rollup.config.js -w",
         "clean-database": "node dropDatabase.js"
