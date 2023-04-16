@@ -136,64 +136,72 @@ const FirstSection = ()=>{
     const mobileReturn = /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
         className: "flex h-full w-full content-between justify-around p-1",
         children: [
-            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
-                onClick: openSecondSection,
-                className: `h-full rounded-full ${ false ? 0 : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
-                children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_ListIcon__WEBPACK_IMPORTED_MODULE_14__/* ["default"] */ .Z, {
-                    className: `aspect-square h-full ${ false ? 0 : "text-white"}`
-                })
-            }),
-            /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
-                onClick: ()=>setActiveView("chat"),
-                className: `h-full rounded-full ${activeView === "chat" ? "bg-Verde p-3" : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
+            !settingsIsOpen && /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
                 children: [
-                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_ChatBubble__WEBPACK_IMPORTED_MODULE_7__/* ["default"] */ .Z, {
-                        className: `aspect-square h-full ${activeView === "chat" ? "text-black" : "text-white"}`
-                    }),
-                    totalUnredMessages > 0 && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_utils_NumberNotification__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .Z, {
-                        value: totalUnredMessages
-                    })
-                ]
-            }),
-            /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
-                onClick: ()=>setActiveView("friends"),
-                className: `h-full rounded-full ${activeView === "friends" ? "bg-Verde p-3" : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
-                children: [
-                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_Friend__WEBPACK_IMPORTED_MODULE_6__/* ["default"] */ .Z, {
-                        className: `h-full ${activeView === "friends" ? "text-black" : "text-white"}`
-                    }),
-                    friendRequestsNumber > 0 && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_utils_NumberNotification__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .Z, {
-                        value: friendRequestsNumber
-                    })
-                ]
-            }),
-            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
-                onClick: ()=>setActiveView("search"),
-                className: `h-full rounded-full ${activeView === "search" ? "bg-Verde p-3" : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
-                children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_Search__WEBPACK_IMPORTED_MODULE_5__/* ["default"] */ .Z, {
-                    className: `h-full ${activeView === "search" ? "text-black" : "text-white"}`
-                })
-            }),
-            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
-                className: "h-full",
-                children: /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
-                    onClick: ()=>{},
-                    className: `flex h-full cursor-pointer flex-col justify-center gap-4 rounded-full  ${settingsIsOpen ? "bg-black px-2 py-4" : "bg-white bg-opacity-10 p-2 active:brightness-75"} align-middle`,
-                    children: [
-                        settingsIsOpen && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_components_svg_Logout__WEBPACK_IMPORTED_MODULE_4__/* ["default"] */ .Z, {
-                            onClick: logoutUser,
-                            className: "h-full overflow-visible text-white duration-100 ease-linear hover:scale-90 hover:text-Crimson"
-                        }),
-                        settingsIsOpen && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_XIcon__WEBPACK_IMPORTED_MODULE_13__/* ["default"] */ .Z, {
-                            onClick: ()=>setSettingsIsOpen(false),
-                            className: "h-full overflow-visible text-white duration-100 ease-linear hover:scale-90 hover:text-Crimson [&:hover_#hiddenOnParentHover]:hidden [&:hover_#visibleOnParentHover]:flex [&_#hiddenOnParentHover]:flex [&_#visibleOnParentHover]:hidden"
-                        }),
-                        !settingsIsOpen && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_GearFillIcon__WEBPACK_IMPORTED_MODULE_12__/* ["default"] */ .Z, {
-                            onClick: ()=>setSettingsIsOpen(true),
-                            className: "h-full overflow-visible text-white duration-100 ease-linear hover:scale-90 hover:text-Verde"
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                        onClick: openSecondSection,
+                        className: `h-full rounded-full ${ false ? 0 : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
+                        children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_ListIcon__WEBPACK_IMPORTED_MODULE_14__/* ["default"] */ .Z, {
+                            className: `aspect-square h-full ${ false ? 0 : "text-white"}`
                         })
-                    ]
-                })
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                        onClick: ()=>setActiveView("chat"),
+                        className: `h-full rounded-full ${activeView === "chat" ? "bg-Verde p-3" : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
+                        children: [
+                            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_ChatBubble__WEBPACK_IMPORTED_MODULE_7__/* ["default"] */ .Z, {
+                                className: `aspect-square h-full ${activeView === "chat" ? "text-black" : "text-white"}`
+                            }),
+                            totalUnredMessages > 0 && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_utils_NumberNotification__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .Z, {
+                                value: totalUnredMessages
+                            })
+                        ]
+                    }),
+                    /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+                        onClick: ()=>setActiveView("friends"),
+                        className: `h-full rounded-full ${activeView === "friends" ? "bg-Verde p-3" : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
+                        children: [
+                            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_Friend__WEBPACK_IMPORTED_MODULE_6__/* ["default"] */ .Z, {
+                                className: `h-full ${activeView === "friends" ? "text-black" : "text-white"}`
+                            }),
+                            friendRequestsNumber > 0 && /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_utils_NumberNotification__WEBPACK_IMPORTED_MODULE_9__/* ["default"] */ .Z, {
+                                value: friendRequestsNumber
+                            })
+                        ]
+                    }),
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                        onClick: ()=>setActiveView("search"),
+                        className: `h-full rounded-full ${activeView === "search" ? "bg-Verde p-3" : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
+                        children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_Search__WEBPACK_IMPORTED_MODULE_5__/* ["default"] */ .Z, {
+                            className: `h-full ${activeView === "search" ? "text-black" : "text-white"}`
+                        })
+                    }),
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                        onClick: ()=>setSettingsIsOpen(true),
+                        className: `h-full rounded-full ${ false ? 0 : "cursor-pointer bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3"}`,
+                        children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_GearFillIcon__WEBPACK_IMPORTED_MODULE_12__/* ["default"] */ .Z, {
+                            className: "aspect-square h-full overflow-visible text-white duration-100 ease-linear hover:scale-90 hover:text-Verde"
+                        })
+                    })
+                ]
+            }),
+            settingsIsOpen && /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.Fragment, {
+                children: [
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                        onClick: logoutUser,
+                        className: `h-full cursor-pointer rounded-full bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3`,
+                        children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_components_svg_Logout__WEBPACK_IMPORTED_MODULE_4__/* ["default"] */ .Z, {
+                            className: "h-full overflow-visible text-white duration-100 ease-linear hover:scale-90 hover:text-Crimson"
+                        })
+                    }),
+                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("div", {
+                        onClick: ()=>setSettingsIsOpen(false),
+                        className: `h-full cursor-pointer rounded-full bg-white bg-opacity-10 p-2 duration-100 ease-linear hover:bg-opacity-20 hover:p-3`,
+                        children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx(_svg_XIcon__WEBPACK_IMPORTED_MODULE_13__/* ["default"] */ .Z, {
+                            className: "aspect-square h-full overflow-visible text-white duration-100 ease-linear hover:scale-90 hover:text-Crimson"
+                        })
+                    })
+                ]
             })
         ]
     });
@@ -1510,23 +1518,19 @@ const ListIcon = (props)=>{
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
 
 const LogoutIcon = (props)=>{
-    return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+    return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("svg", {
+        ...props,
+        xmlns: "http://www.w3.org/2000/svg",
+        fill: "currentColor",
+        viewBox: "0 0 16 16",
         children: [
-            /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("svg", {
-                ...props,
-                xmlns: "http://www.w3.org/2000/svg",
-                fill: "currentColor",
-                viewBox: "0 0 16 16",
-                children: [
-                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("path", {
-                        fillRule: "evenodd",
-                        d: "M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"
-                    }),
-                    /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("path", {
-                        fillRule: "evenodd",
-                        d: "M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
-                    })
-                ]
+            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("path", {
+                fillRule: "evenodd",
+                d: "M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0v2z"
+            }),
+            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("path", {
+                fillRule: "evenodd",
+                d: "M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3z"
             }),
             props.children
         ]
@@ -2004,16 +2008,14 @@ function VerticalDotsIcon(props) {
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
 
 const XIcon = (props)=>{
-    return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("div", {
+    return /*#__PURE__*/ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("svg", {
+        ...props,
+        xmlns: "http://www.w3.org/2000/svg",
+        fill: "currentColor",
+        viewBox: "0 0 16 16",
         children: [
-            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("svg", {
-                ...props,
-                xmlns: "http://www.w3.org/2000/svg",
-                fill: "currentColor",
-                viewBox: "0 0 16 16",
-                children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("path", {
-                    d: "M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"
-                })
+            /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("path", {
+                d: "M2.146 2.854a.5.5 0 1 1 .708-.708L8 7.293l5.146-5.147a.5.5 0 0 1 .708.708L8.707 8l5.147 5.146a.5.5 0 0 1-.708.708L8 8.707l-5.146 5.147a.5.5 0 0 1-.708-.708L7.293 8 2.146 2.854Z"
             }),
             props.children
         ]

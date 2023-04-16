@@ -1,5 +1,7 @@
 import * as React from "react";
 import { useRouter } from "next/router";
+import GoogleIcon from "../components/svg/GoogleIcon";
+import CaretRightEmptyFill from "../components/svg/CaretRightFill";
 
 // traditional login/register
 // 1. userul trimite credentialele la server ptrintrun fetch() request
@@ -68,49 +70,72 @@ function LoginPage() {
         router.push("/register");
     };
 
+    async function loginImmediately() {
+        const response = await fetch("/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: "fakeemail@gmail.com", password: "8PH7rbciMay5TsH" }),
+        });
+
+        if (!response.ok && setFormError("Login failed") === undefined) return;
+
+        const json = await response.json();
+
+        if (!json.token && alert("Serverul nu nea trimis nici un token") === undefined) return;
+
+        localStorage.setItem("token", json.token);
+        // dam render la home page, si acolo va fi un script care va apela api-ul pentru a extrage informatiile user-ului
+        return router.push("/");
+    }
+
     return (
-        <div className="mt-28 grid place-items-center">
-            <div className="h-120 w-80 rounded-br-3xl rounded-tl-3xl border-2 bg-neutral-800 px-2.5 leading-9 ">
-                <form onSubmit={handleFormSubmit} encType="application/x-www-form-urlencoded">
-                    <h1 className="mt-7 text-center text-2xl font-semibold text-white underline decoration-Verde">{"Login"}</h1>
+        <div className="flex h-full w-full items-center justify-center">
+            <div className="flex flex-col items-center justify-center">
+                <div className="h-120 w-80 rounded-br-3xl rounded-tl-3xl border-2 bg-neutral-800 px-2.5 leading-9 ">
+                    <form className="flex flex-col items-center gap-4 p-4" onSubmit={handleFormSubmit} encType="application/x-www-form-urlencoded">
+                        <h1 className="mb-4 text-center text-2xl font-semibold text-white underline decoration-Verde">{"Login"}</h1>
 
-                    <br />
+                        <input placeholder="Email" id="email" className="w-full rounded-lg text-center" type="email" name="email" ref={emailRef} />
 
-                    <label className="text-white" htmlFor="email">
-                        {""}
-                    </label>
+                        <input placeholder="Password" id="password" className=" w-full rounded-lg text-center" type="password" name="password" ref={passwordRef} />
 
-                    <input placeholder="Email" id="email" className="mb-5 mt-5 w-full rounded-lg text-center" type="email" name="email" ref={emailRef} />
+                        {formError && <p className="text-red-600">{formError}</p>}
+                        <button className="mb-4 w-full rounded border bg-Verde px-3.5 font-semibold text-Black-Blue" type="submit" id="loginBtn">
+                            {"LOGIN"}
+                        </button>
 
-                    <label className="text-white" htmlFor="password">
-                        {""}
-                    </label>
-
-                    <input placeholder="Password" id="password" className="mb-5 mt-2 w-full rounded-lg text-center" type="password" name="password" ref={passwordRef} />
-
-                    {formError && <p className="text-red-600">{formError}</p>}
-                    <button className="mx-auto mb-4 w-full rounded border bg-Verde px-3.5 font-semibold text-Black-Blue" type="submit" id="loginBtn">
-                        {"LOGIN"}
-                    </button>
-
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <button
                             onClick={() => (window.location.href = window.getGoogleRedirectLink("/api/login/google"))}
                             type="button"
-                            className="rounded-md border bg-slate-100 text-center "
+                            className="flex w-fit items-center gap-1 rounded-md border bg-slate-100 p-1 text-center font-Whyte-Medium text-lg"
                             id="loginGoogleBtn"
                         >
-                            {"Google"}
+                            <GoogleIcon className="aspect-square h-[1.2rem]" />
+                            {"Log in with Google"}
                         </button>
 
-                        <button type="button" className="rounded-md border bg-slate-100 text-center" id="loginFacebookBtn">
-                            {"Facebook"}
+                        <button
+                            type="button"
+                            onClick={handleButtonClick}
+                            className="flex w-fit items-center gap-1 rounded-md border bg-white bg-opacity-25  p-1 text-center font-Whyte-Medium text-lg text-white duration-100 ease-linear hover:bg-opacity-50"
+                            id="redirectRegisterBtn"
+                        >
+                            {"Register"}
+                            <CaretRightEmptyFill className="aspect-square h-[1.2rem]" />
                         </button>
-                    </div>
-                    <button type="button" onClick={handleButtonClick} className=" mx-auto my-auto  mb-2.5 block text-white  " id="redirectRegisterBtn">
-                        {"Register"}
-                    </button>
-                </form>
+
+                        <button
+                            onClick={loginImmediately}
+                            type="button"
+                            className="flex w-fit items-center gap-1 rounded-md border bg-Crimson p-1 text-center font-Whyte-Regular text-base"
+                            id="loginGoogleBtn"
+                        >
+                            {"!!!click here to login immediately to an existing account!!!"}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     );

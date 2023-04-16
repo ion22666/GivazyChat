@@ -46,7 +46,7 @@ function Document() {
                     }),
                     /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("meta", {
                         httpEquiv: "Content-Security-Policy",
-                        content: "img-src 'self' https://lh3.googleusercontent.com https://picsum.photos https://fastly.picsum.photos"
+                        content: "img-src 'self' https://lh3.googleusercontent.com https://picsum.photos https://fastly.picsum.photos https://cdn.discordapp.com"
                     })
                 ]
             }),

@@ -14,7 +14,7 @@ export default function Document() {
                 <script src="scripts/request-helper.js"></script>
                 <meta name="client_id" content={process.env.client_id} />
                 <meta name="domain" content={process.env.domain} />
-                <meta httpEquiv="Content-Security-Policy" content="img-src 'self' https://lh3.googleusercontent.com https://picsum.photos https://fastly.picsum.photos"></meta>
+                <meta httpEquiv="Content-Security-Policy" content="img-src 'self' https://lh3.googleusercontent.com https://picsum.photos https://fastly.picsum.photos https://cdn.discordapp.com"></meta>
             </Head>
             <body className="h-full w-full overflow-hidden">
                 <Main />
